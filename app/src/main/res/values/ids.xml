@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="etEmail" type="id" />
+    <item name="etPassword" type="id" />
+    <item name="btnLogin" type="id" />
+    <item name="tvWelcomeBack" type="id" />
+    <item name="tvLoginFrame" type="id" />
+    <item name="tvLoginDesc" type="id" />
+    <item name="tvForgotPassword" type="id" />
+    <item name="linearLayout" type="id" />
+    <item name="llSocialLogin" type="id" />
+</resources>

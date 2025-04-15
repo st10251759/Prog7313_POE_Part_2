@@ -6,4 +6,6 @@
     <color name="olivine">#A6C48A</color>
     <color name="champagne">#F6E7CB</color>
     <color name="coral_pink">#DD9787</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
 </resources>
