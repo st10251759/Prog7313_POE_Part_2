@@ -14,6 +14,10 @@ import com.firstproject.prog7313_budgetbuddy.RegisterActivity
 import com.firstproject.prog7313_budgetbuddy.MainActivity
 import com.firstproject.prog7313_budgetbuddy.R
 import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+
+
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var etEmail: EditText
