@@ -8,17 +8,14 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import com.firstproject.prog7313_budgetbuddy.R
-import com.firstproject.prog7313_budgetbuddy.data.entities.User
 import com.firstproject.prog7313_budgetbuddy.viewmodels.ViewModels
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
+import com.google.firebase.auth.UserProfileChangeRequest
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var userViewModel: ViewModels
+    private lateinit var viewModel: ViewModels
 
     private lateinit var etFullname: EditText
     private lateinit var etEmail: EditText
@@ -35,7 +32,7 @@ class RegisterActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         // Initialize ViewModel
-        userViewModel = ViewModelProvider(this)[ViewModels::class.java]
+        viewModel = ViewModelProvider(this)[ViewModels::class.java]
 
         // Initialize views
         etFullname = findViewById(R.id.edFullName)
@@ -98,37 +95,30 @@ class RegisterActivity : AppCompatActivity() {
         btnRegister.text = "Registering..."
 
         // Register with Firebase
-        userViewModel.registerWithFirebase(email, password,
-            onSuccess = {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnSuccessListener { authResult ->
+                // Set display name in Firebase
+                val profileUpdates = UserProfileChangeRequest.Builder()
+                    .setDisplayName(fullname)
+                    .build()
 
-                // Create user in local database
-                lifecycleScope.launch {
-                    val user = User(
-                        fullname = fullname,
-                        email = email,
-                        password = "" // Don't store actual password
-                    )
-                    userViewModel.createUser(fullname, email, "")
-                    auth.createUserWithEmailAndPassword(email, password)
-
-
-                }
-                Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                // (Optional) Save user data to Firestore here
-
-
-                startActivity(Intent(this, LoginActivity::class.java))
-
-            },
-            onFailure = { message ->
+                authResult.user?.updateProfile(profileUpdates)
+                    ?.addOnSuccessListener {
+                        Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this, LoginActivity::class.java))
+                        finish()
+                    }
+                    ?.addOnFailureListener { exception ->
+                        Toast.makeText(this, "Failed to update profile: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        btnRegister.isEnabled = true
+                        btnRegister.text = "Register"
+                    }
+            }
+            .addOnFailureListener { exception ->
                 // Registration failed
-                Toast.makeText(this, "Registration failed: $message", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Registration failed: ${exception.message}", Toast.LENGTH_SHORT).show()
                 btnRegister.isEnabled = true
                 btnRegister.text = "Register"
             }
-        )
     }
-
-
 }
-
