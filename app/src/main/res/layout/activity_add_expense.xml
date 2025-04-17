@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    tools:context=".AddExpenseActivity">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Back"
+            app:tint="@color/olivine" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add Expense"
+            android:textAlignment="center"
+            android:textColor="@color/olivine"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="32dp"
+            android:layout_height="32dp" />
+    </LinearLayout>
+
+    <!-- Main Content Card -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Amount Input -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginBottom="24dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="R"
+                            android:textColor="@color/olivine"
+                            android:textSize="30sp"
+                            android:textStyle="bold"/>
+
+                        <TextView
+                            android:id="@+id/tvTotalAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="0.00"
+                            android:textColor="#707070"
+                            android:textSize="40sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Amount"
+                        android:textColor="#AAAAAA"
+                        android:textSize="14sp"
+                        android:layout_marginTop="4dp"/>
+
+                    <!-- Numeric Keypad -->
+                    <GridLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:columnCount="3"
+                        android:rowCount="4">
+
+                        <!-- Row 1: 1, 2, 3 -->
+                        <Button
+                            android:id="@+id/btn1"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="1"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn2"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="2"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn3"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="3"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <!-- Row 2: 4, 5, 6 -->
+                        <Button
+                            android:id="@+id/btn4"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="4"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn5"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="5"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn6"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="6"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <!-- Row 3: 7, 8, 9 -->
+                        <Button
+                            android:id="@+id/btn7"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="7"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn8"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="8"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn9"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="9"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <!-- Row 4: ., 0, ⌫ -->
+                        <Button
+                            android:id="@+id/btnDot"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="."
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn0"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="0"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btnDelete"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="⌫"
+                            android:textColor="#202020"
+                            android:textSize="22sp"
+                            style="?android:attr/borderlessButtonStyle" />
+                    </GridLayout>
+                </LinearLayout>
+
+                <!-- Date Input -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Date"
+                    android:textColor="@color/olivine"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/input_field_bg"
+                    android:layout_marginBottom="24dp">
+
+                    <EditText
+                        android:id="@+id/etDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="mm/dd/yyyy"
+                        android:inputType="none"
+                        android:focusable="false"
+                        android:padding="16dp"
+                        android:textColorHint="#AAAAAA"
+                        android:textColor="#202020" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/ic_calendar"
+                        android:tint="#AAAAAA" />
+
+                    <Button
+                        android:id="@+id/btnToday"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Today"
+                        android:textColor="@color/celadon"
+                        android:background="@null"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp"
+                        style="?android:attr/borderlessButtonStyle" />
+                </LinearLayout>
+
+                <!-- Category Selection -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Category"
+                    android:textColor="@color/olivine"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="8dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/input_field_bg"
+                    android:layout_marginBottom="24dp">
+
+                    <Spinner
+                        android:id="@+id/categorySpinner"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:padding="16dp"
+                        android:spinnerMode="dropdown"
+                        android:popupBackground="@android:color/white" />
+
+                    <ImageButton
+                        android:id="@+id/btnAddCategory"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_add"
+                        android:tint="@color/celadon"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Add new category" />
+                </LinearLayout>
+
+                <!-- Description -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Description"
+                    android:textColor="@color/olivine"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="8dp"/>
+
+                <EditText
+                    android:id="@+id/etDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/input_field_bg"
+                    android:hint="Ex: Dinner with friends"
+                    android:inputType="textCapSentences"
+                    android:padding="16dp"
+                    android:textColorHint="#AAAAAA"
+                    android:textColor="#202020"
+                    android:layout_marginBottom="24dp"/>
+
+                <!-- Receipt Photo -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Receipt (Optional)"
+                    android:textColor="@color/olivine"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="8dp"/>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp">
+
+                    <Button
+                        android:id="@+id/btnAddPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/input_field_bg"
+                        android:drawableStart="@drawable/ic_camera"
+                        android:drawableTint="#AAAAAA"
+                        android:drawablePadding="16dp"
+                        android:gravity="start|center_vertical"
+                        android:padding="16dp"
+                        android:text="Attach receipt photo"
+                        android:textColor="#AAAAAA"
+                        android:textAllCaps="false" />
+
+                    <ImageView
+                        android:id="@+id/ivReceiptPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        android:background="@drawable/input_field_bg"
+                        android:contentDescription="Receipt photo" />
+                </FrameLayout>
+
+                <!-- Save Button -->
+                <Button
+                    android:id="@+id/btnSaveExpense"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/save_button_bg"
+                    android:drawableStart="@drawable/ic_done"
+                    android:drawableTint="@android:color/white"
+                    android:drawablePadding="16dp"
+                    android:gravity="center"
+                    android:paddingStart="24dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="24dp"
+                    android:paddingBottom="16dp"
+                    android:text="Save Expense"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp" />
+            </LinearLayout>
+        </ScrollView>
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
