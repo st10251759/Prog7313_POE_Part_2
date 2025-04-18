@@ -114,4 +114,11 @@ class Repositories(
     suspend fun getBudgetGoalById(goalId: Int): BudgetGoal? {
         return budgetGoalDao.getBudgetGoalById(goalId)
     }
+
+    /**
+     * Gets the spending amount for each category within a specific time period
+     */
+    fun getCategorySpendingForPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<CategorySpending>> {
+        return expenseDao.getCategorySpendingForPeriod(userId, startDate, endDate)
+    }
 }

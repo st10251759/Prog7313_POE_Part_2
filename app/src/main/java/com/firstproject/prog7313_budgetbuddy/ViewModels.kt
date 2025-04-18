@@ -274,6 +274,46 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun getCategorySpendingForPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<CategoryWithAmount>> {
+        val result = MediatorLiveData<List<CategoryWithAmount>>()
+
+        val totalExpensesLiveData = repository.getTotalExpensesForPeriod(userId, startDate, endDate)
+        val categoriesLiveData = repository.getCategorySpendingForPeriod(userId, startDate, endDate)
+
+        result.addSource(totalExpensesLiveData) { totalAmount ->
+            val categories = categoriesLiveData.value
+            if (categories != null) {
+                result.value = calculateCategoryWithAmounts(categories, totalAmount ?: 0.0)
+            }
+        }
+
+        result.addSource(categoriesLiveData) { categories ->
+            val totalAmount = totalExpensesLiveData.value
+            if (totalAmount != null) {
+                result.value = calculateCategoryWithAmounts(categories, totalAmount)
+            }
+        }
+
+        return result
+    }
+
+    private fun calculateCategoryWithAmounts(
+        categories: List<CategorySpending>,
+        totalAmount: Double
+    ): List<CategoryWithAmount> {
+        return categories.map { categorySpending ->
+            CategoryWithAmount(
+                categoryId = categorySpending.category.categoryId,
+                categoryName = categorySpending.category.categoryName,
+                colour = categorySpending.category.colour,
+                amount = categorySpending.amount,
+                percentage = if (totalAmount > 0) (categorySpending.amount / totalAmount).toFloat() else 0f
+            )
+        }
+    }
+
+
+
 
 
 
