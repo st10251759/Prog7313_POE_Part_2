@@ -8,7 +8,9 @@ import com.firstproject.prog7313_budgetbuddy.data.repositories.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 class ViewModels(application: Application) : AndroidViewModel(application) {
@@ -253,4 +255,28 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     suspend fun getPhotoByExpenseId(expenseId: Int): Photo? {
         return repository.getPhotoByExpenseId(expenseId)
     }
+
+    /**
+     * Gets expenses for a specific period synchronously.
+     * This is used by the ExpenseListActivity.
+     */
+    fun getExpensesByPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<Expense>> {
+        return repository.getExpensesByPeriod(userId, startDate, endDate)
+    }
+
+    /**
+     * Gets a photo by its ID synchronously.
+     * Used when accessing receipt photos from the expense list.
+     */
+    suspend fun getPhotoById(photoId: Int): Photo? {
+        return withContext(Dispatchers.IO) {
+            repository.getPhotoById(photoId)
+        }
+    }
+
+
+
+
+
+
 }

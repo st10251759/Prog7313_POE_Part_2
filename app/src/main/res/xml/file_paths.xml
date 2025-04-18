@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <external-files-path name="my_images" path="Pictures" />
-    <external-path name="my_external_images" path="Pictures" />
-    <cache-path name="my_cache_images" path="/" />
+    <external-files-path name="my_images" path="Pictures/" />
+    <files-path name="my_internal_images" path="Pictures/" />
+    <external-path name="my_external_images" path="Android/data/com.firstproject.prog7313_budgetbuddy/files/Pictures/" />
+    <cache-path name="my_cache_images" path="Pictures/" />
 </paths>

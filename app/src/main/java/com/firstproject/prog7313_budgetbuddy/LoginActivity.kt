@@ -61,7 +61,7 @@ class LoginActivity : AppCompatActivity() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, AddExpenseActivity::class.java))
+                        startActivity(Intent(this, ExpenseListActivity::class.java))
                         finish()
                     } else {
                         Toast.makeText(
