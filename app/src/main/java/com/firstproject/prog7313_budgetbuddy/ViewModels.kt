@@ -225,24 +225,6 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         return repository.getTotalExpensesForPeriod(currentUserId, dateRange.first, dateRange.second)
     }
 
-    // Budget Goal methods
-    fun getCurrentBudgetGoal(): LiveData<BudgetGoal?> {
-        val currentUserId = getCurrentUserId() ?: return MutableLiveData(null)
-        return repository.getCurrentBudgetGoal(currentUserId)
-    }
-
-    fun createBudgetGoal(minAmount: Double, maxAmount: Double, startDate: Date, endDate: Date) = viewModelScope.launch {
-        val currentUserId = getCurrentUserId() ?: return@launch
-        val budgetGoal = BudgetGoal(
-            userId = currentUserId,
-            minGoalAmount = minAmount,
-            maxGoalAmount = maxAmount,
-            startDate = startDate,
-            endDate = endDate
-        )
-        repository.insertBudgetGoal(budgetGoal)
-    }
-
     fun updateBudgetGoal(budgetGoal: BudgetGoal) = viewModelScope.launch {
         repository.updateBudgetGoal(budgetGoal)
     }
@@ -312,7 +294,87 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Gets the current budget goal for the logged-in user
+     */
+    fun getCurrentBudgetGoal(): LiveData<BudgetGoal?> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(null)
+        return repository.getCurrentBudgetGoal(currentUserId)
+    }
 
+    /**
+     * Creates a new budget goal for the current month
+     */
+    fun createBudgetGoal(minAmount: Double, maxAmount: Double, startDate: Date, endDate: Date) = viewModelScope.launch {
+        val currentUserId = getCurrentUserId() ?: return@launch
+
+        // Check if a budget goal already exists for this period
+        val existingGoal = repository.getBudgetGoalForDate(currentUserId, startDate)
+
+        if (existingGoal != null) {
+            // Update existing goal
+            val updatedGoal = existingGoal.copy(
+                minGoalAmount = minAmount,
+                maxGoalAmount = maxAmount
+            )
+            repository.updateBudgetGoal(updatedGoal)
+        } else {
+            // Create new goal
+            val budgetGoal = BudgetGoal(
+                userId = currentUserId,
+                minGoalAmount = minAmount,
+                maxGoalAmount = maxAmount,
+                startDate = startDate,
+                endDate = endDate
+            )
+            repository.insertBudgetGoal(budgetGoal)
+        }
+    }
+
+    /**
+     * Gets budget goal for a specific date
+     */
+    suspend fun getBudgetGoalForDate(date: Date): BudgetGoal? {
+        val currentUserId = getCurrentUserId() ?: return null
+        return repository.getBudgetGoalForDate(currentUserId, date)
+    }
+
+    /**
+     * Gets budget goal progress - comparing current spending to min/max goals
+     * Returns a Triple of (currentAmount, minGoal, maxGoal)
+     */
+    fun getBudgetProgress(startDate: Date, endDate: Date): LiveData<Triple<Double, Double, Double>> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(Triple(0.0, 0.0, 0.0))
+
+        val result = MediatorLiveData<Triple<Double, Double, Double>>()
+
+        val spendingLiveData = repository.getTotalExpensesForPeriod(currentUserId, startDate, endDate)
+        val budgetGoalLiveData = repository.getCurrentBudgetGoal(currentUserId)
+
+        result.addSource(spendingLiveData) { spending ->
+            val budgetGoal = budgetGoalLiveData.value
+            if (budgetGoal != null) {
+                result.value = Triple(
+                    spending ?: 0.0,
+                    budgetGoal.minGoalAmount,
+                    budgetGoal.maxGoalAmount
+                )
+            }
+        }
+
+        result.addSource(budgetGoalLiveData) { budgetGoal ->
+            val spending = spendingLiveData.value
+            if (budgetGoal != null) {
+                result.value = Triple(
+                    spending ?: 0.0,
+                    budgetGoal.minGoalAmount,
+                    budgetGoal.maxGoalAmount
+                )
+            }
+        }
+
+        return result
+    }
 
 
 
