@@ -4,11 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.firstproject.prog7313_budgetbuddy.viewmodels.ViewModels
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 
@@ -22,7 +23,8 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var etPassword: EditText
     private lateinit var etConfirmPassword: EditText
     private lateinit var btnRegister: Button
-    private lateinit var tvLogin: TextView
+    private lateinit var btnLogin: MaterialButton
+    private lateinit var btnBack: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,17 +42,30 @@ class RegisterActivity : AppCompatActivity() {
         etPassword = findViewById(R.id.edPassword)
         etConfirmPassword = findViewById(R.id.edPasswordConfirmed)
         btnRegister = findViewById(R.id.btnRegisterPage)
-        tvLogin = findViewById(R.id.btnLoginPage)
+        btnLogin = findViewById(R.id.btnLoginPage)
+        btnBack = findViewById(R.id.btnBack)
 
         // Set click listeners
         btnRegister.setOnClickListener {
             registerUser()
         }
 
-        tvLogin.setOnClickListener {
-            // Navigate back to LoginActivity
-            finish()
+        // Navigate to LoginActivity when login button is clicked
+        btnLogin.setOnClickListener {
+            navigateToLoginActivity()
         }
+
+        // Also navigate to LoginActivity when back button is clicked
+        btnBack.setOnClickListener {
+            navigateToLoginActivity()
+        }
+    }
+
+    private fun navigateToLoginActivity() {
+        // Create explicit intent to LoginActivity
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish() // Close the current activity
     }
 
     private fun registerUser() {
@@ -105,8 +120,7 @@ class RegisterActivity : AppCompatActivity() {
                 authResult.user?.updateProfile(profileUpdates)
                     ?.addOnSuccessListener {
                         Toast.makeText(this, "Account created successfully!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, LoginActivity::class.java))
-                        finish()
+                        navigateToLoginActivity()
                     }
                     ?.addOnFailureListener { exception ->
                         Toast.makeText(this, "Failed to update profile: ${exception.message}", Toast.LENGTH_SHORT).show()

@@ -146,6 +146,14 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         return repository.getExpensesByPeriod(currentUserId, dateRange.first, dateRange.second)
     }
 
+    fun getTotalExpensesForPeriod(userId: String, startDate: Date, endDate: Date): LiveData<Double> {
+        return repository.getTotalExpensesForPeriod(userId, startDate, endDate)
+    }
+
+    fun getCurrentBudgetGoal(userId: String): LiveData<BudgetGoal?> {
+        return repository.getCurrentBudgetGoal(userId)
+    }
+
     fun createExpense(
         categoryId: Int?,
         categoryName: String,
@@ -375,6 +383,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
 
         return result
     }
+
 
 
 

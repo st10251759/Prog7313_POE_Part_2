@@ -45,4 +45,5 @@ interface ExpenseDao {
     ORDER BY amount DESC
     """)
     fun getCategorySpendingForPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<CategorySpending>>
+
 }
