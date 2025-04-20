@@ -160,7 +160,7 @@
                 android:id="@+id/tvTotalSpending"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="$1,249.85"
+                android:text="R0.00"
                 android:textColor="@android:color/black"
                 android:textSize="24sp"
                 android:textStyle="bold" />
