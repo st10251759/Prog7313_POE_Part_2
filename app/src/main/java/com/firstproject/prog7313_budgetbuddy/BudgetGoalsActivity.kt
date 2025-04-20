@@ -95,12 +95,8 @@ class BudgetGoalsActivity : AppCompatActivity() {
         btnSaveBudget = findViewById(R.id.btnSaveBudget)
         btnCancel = findViewById(R.id.btnCancel)
 
-        // Find the budget container views
-        val minimumBudgetContainer = findViewById<LinearLayout>(R.id.minimumBudgetContainer)
-        val maximumBudgetContainer = findViewById<LinearLayout>(R.id.maximumBudgetContainer)
-
-        // Set click listeners on the containers
-        minimumBudgetContainer.setOnClickListener {
+        // Set the click listeners on tvMinimumBudget and tvMaximumBudget to enable editing
+        tvMinimumBudget.setOnClickListener {
             editingMinimum = true
             highlightActiveField()
             currentAmount = if (minGoalAmount > 0) {
@@ -111,7 +107,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
             updateAmountDisplay()
         }
 
-        maximumBudgetContainer.setOnClickListener {
+        tvMaximumBudget.setOnClickListener {
             editingMinimum = false
             highlightActiveField()
             currentAmount = if (maxGoalAmount > 0) {
@@ -141,6 +137,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         // Set default amount display
         updateAmountDisplay()
     }
+
 
 
     private fun setupListeners() {
@@ -245,6 +242,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
             maximumBudgetContainer.setBackgroundResource(R.drawable.budget_field_active_wireframe)
         }
     }
+
 
     private fun loadCurrentBudgetGoal() {
         val userId = auth.currentUser?.uid ?: run {

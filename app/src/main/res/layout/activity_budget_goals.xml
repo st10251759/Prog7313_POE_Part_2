@@ -84,12 +84,6 @@
                 android:orientation="horizontal"
                 android:paddingBottom="8dp">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="Minimum Budget"
-                    android:src="@drawable/ic_money"
-                    app:tint="@color/asparagus" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -129,13 +123,6 @@
                         android:textColor="@android:color/black"
                         android:textSize="18sp" />
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginStart="8dp"
-                        android:src="@drawable/ic_dropdown"
-                        app:tint="#888888" />
-
                     <TextView
                         android:id="@+id/tvMinimumBudget"
                         android:layout_width="match_parent"
@@ -146,9 +133,10 @@
                         android:paddingTop="14dp"
                         android:paddingEnd="24dp"
                         android:paddingBottom="14dp"
-                        android:text="2,150.00"
+                        android:text="0.00"
                         android:textColor="@android:color/black"
-                        android:textSize="18sp" />
+                        android:background="?android:attr/selectableItemBackground" />
+                         />
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
@@ -162,12 +150,7 @@
                 android:orientation="horizontal"
                 android:paddingBottom="8dp">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="Maximum Budget"
-                    android:src="@drawable/ic_money"
-                    app:tint="@color/asparagus" />
+
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -207,13 +190,6 @@
                         android:textColor="@android:color/black"
                         android:textSize="18sp" />
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginStart="8dp"
-                        android:src="@drawable/ic_dropdown"
-                        app:tint="#888888" />
-
                     <TextView
                         android:id="@+id/tvMaximumBudget"
                         android:layout_width="match_parent"
@@ -224,9 +200,9 @@
                         android:paddingTop="14dp"
                         android:paddingEnd="24dp"
                         android:paddingBottom="14dp"
-                        android:text="2,150.00"
+                        android:text="0.00"
                         android:textColor="@android:color/black"
-                        android:textSize="18sp" />
+                        android:background="?android:attr/selectableItemBackground" />
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
