@@ -152,24 +152,35 @@ class MainActivity : AppCompatActivity() {
     private fun loadBudgetData() {
         val userId = auth.currentUser?.uid ?: return
 
-        // Get current budget goal
         viewModel.getCurrentBudgetGoal(userId).observe(this) { budgetGoal ->
-            // Get total spending for the period
+            if (budgetGoal == null) {
+                updateBudgetDisplay(null, 0.0)
+                updateSpendingDisplay(0.0, null)
+                return@observe
+            }
+
             viewModel.getTotalExpensesForPeriod(userId, startDate.time, endDate.time).observe(this) { totalSpent ->
-                updateBudgetDisplay(budgetGoal, totalSpent)
-                updateSpendingDisplay(totalSpent, budgetGoal)
+                val safeTotal = totalSpent ?: 0.0
+                updateBudgetDisplay(budgetGoal, safeTotal)
+                updateSpendingDisplay(safeTotal, budgetGoal)
             }
         }
     }
+
 
 
     private fun loadCategorySpending() {
         val userId = auth.currentUser?.uid ?: return
 
         viewModel.getCategorySpendingForPeriod(userId, startDate.time, endDate.time).observe(this) { categorySpending ->
-            adapter.updateCategories(categorySpending)
+            if (categorySpending != null) {
+                adapter.updateCategories(categorySpending)
+            } else {
+                adapter.updateCategories(emptyList()) // fallback to empty list
+            }
         }
     }
+
 
     private fun updateBudgetDisplay(budgetGoal: BudgetGoal?, totalSpent: Double) {
         if (budgetGoal == null) {
