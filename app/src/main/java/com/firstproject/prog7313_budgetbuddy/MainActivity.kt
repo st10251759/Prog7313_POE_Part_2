@@ -90,7 +90,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeUI() {
-        // Find views
         btnAddExpense = findViewById(R.id.btnAddExpense)
         tvTotalBudget = findViewById(R.id.tvTotalBudget)
         tvMinBudget = findViewById(R.id.tvMinBudget)
@@ -100,7 +99,6 @@ class MainActivity : AppCompatActivity() {
         budgetProgressBar = findViewById(R.id.budgetProgressBar)
         rvCategorySpending = findViewById(R.id.rvCategorySpending)
 
-        // Setup RecyclerView
         adapter = HomeCategoryAdapter(emptyList())
         rvCategorySpending.layoutManager = LinearLayoutManager(this)
         rvCategorySpending.adapter = adapter
@@ -108,45 +106,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        // Add Expense button
         btnAddExpense.setOnClickListener {
             startActivity(Intent(this, AddExpenseActivity::class.java))
         }
-
-        // Edit Budget Goals
         tvEditBudgetGoals.setOnClickListener {
             startActivity(Intent(this, BudgetGoalsActivity::class.java))
         }
-
-        // Bottom Navigation
-        findViewById<View>(R.id.navHome).setOnClickListener {
-            // Already on home, do nothing
-        }
-
+        findViewById<View>(R.id.navHome).setOnClickListener { }
         findViewById<View>(R.id.navExpenseList).setOnClickListener {
             startActivity(Intent(this, ExpenseListActivity::class.java))
         }
-
         findViewById<View>(R.id.navCategorySpending).setOnClickListener {
             startActivity(Intent(this, CategorySpendingActivity::class.java))
         }
-
         findViewById<View>(R.id.navBudgetGoals).setOnClickListener {
             startActivity(Intent(this, BudgetGoalsActivity::class.java))
         }
-
-        // Period toggles
-        findViewById<TextView>(R.id.btnMonthly).setOnClickListener {
-            setPeriodToggle(PeriodType.MONTHLY)
-        }
-
-        findViewById<TextView>(R.id.btnWeekly).setOnClickListener {
-            setPeriodToggle(PeriodType.WEEKLY)
-        }
-
-        findViewById<TextView>(R.id.btnDaily).setOnClickListener {
-            setPeriodToggle(PeriodType.DAILY)
-        }
+        findViewById<TextView>(R.id.btnMonthly).setOnClickListener { setPeriodToggle(PeriodType.MONTHLY) }
+        findViewById<TextView>(R.id.btnWeekly).setOnClickListener { setPeriodToggle(PeriodType.WEEKLY) }
+        findViewById<TextView>(R.id.btnDaily).setOnClickListener { setPeriodToggle(PeriodType.DAILY) }
     }
 
     private fun loadBudgetData() {
@@ -158,33 +136,25 @@ class MainActivity : AppCompatActivity() {
                 updateSpendingDisplay(0.0, null)
                 return@observe
             }
-
-            viewModel.getTotalExpensesForPeriod(userId, startDate.time, endDate.time).observe(this) { totalSpent ->
-                val safeTotal = totalSpent ?: 0.0
-                updateBudgetDisplay(budgetGoal, safeTotal)
-                updateSpendingDisplay(safeTotal, budgetGoal)
-            }
+            viewModel.getTotalExpensesForPeriod(userId, startDate.time, endDate.time)
+                .observe(this) { totalSpent ->
+                    val safeTotal = totalSpent ?: 0.0
+                    updateBudgetDisplay(budgetGoal, safeTotal)
+                    updateSpendingDisplay(safeTotal, budgetGoal)
+                }
         }
     }
-
-
 
     private fun loadCategorySpending() {
         val userId = auth.currentUser?.uid ?: return
-
-        viewModel.getCategorySpendingForPeriod(userId, startDate.time, endDate.time).observe(this) { categorySpending ->
-            if (categorySpending != null) {
-                adapter.updateCategories(categorySpending)
-            } else {
-                adapter.updateCategories(emptyList()) // fallback to empty list
+        viewModel.getCategorySpendingForPeriod(userId, startDate.time, endDate.time)
+            .observe(this) { categorySpending ->
+                adapter.updateCategories(categorySpending ?: emptyList())
             }
-        }
     }
-
 
     private fun updateBudgetDisplay(budgetGoal: BudgetGoal?, totalSpent: Double) {
         if (budgetGoal == null) {
-            // No budget goal set, show defaults
             tvTotalBudget.text = "R0.00"
             tvMinBudget.text = "min R0"
             tvMaxBudget.text = "max R0"
@@ -192,11 +162,8 @@ class MainActivity : AppCompatActivity() {
             budgetProgressBar.progress = 0
             return
         }
-
-        // Display total spending in tvTotalBudget
+        // Show how much of the budget has been spent
         tvTotalBudget.text = formatCurrency(totalSpent)
-
-        // Format min/max budget numbers
         tvMinBudget.text = "min ${formatCurrency(budgetGoal.minGoalAmount)}"
         tvMaxBudget.text = "max ${formatCurrency(budgetGoal.maxGoalAmount)}"
     }
@@ -207,123 +174,57 @@ class MainActivity : AppCompatActivity() {
             budgetProgressBar.progress = 0
             return
         }
-
         val maxAmount = budgetGoal.maxGoalAmount
         val remaining = maxAmount - totalSpent
 
-        // Update remaining amount
-        tvRemainingBudget.text = "${formatCurrency(remaining)} remaining"
-
-        // Update progress bar
-        val progressPercentage = if (maxAmount > 0) ((totalSpent / maxAmount) * 100).toInt() else 0
-        budgetProgressBar.progress = progressPercentage.coerceIn(0, 100)
-
-        // Change color if exceeding budget
-        if (totalSpent > maxAmount) {
-            tvRemainingBudget.setTextColor(getColor(R.color.coral_pink))
+        if (remaining >= 0) {
+            tvRemainingBudget.text = "${formatCurrency(remaining)} remaining"
         } else {
-            tvRemainingBudget.setTextColor(getColor(R.color.olivine))
+            // over budget
+            tvRemainingBudget.text = "Over budget by ${formatCurrency(-remaining)}"
         }
+
+        val progressPercentage = if (maxAmount > 0) ((totalSpent / maxAmount) * 100).toInt() else 0
+        budgetProgressBar.progress = progressPercentage.coerceIn(0,100)
+
+        tvRemainingBudget.setTextColor(
+            if (remaining < 0) getColor(R.color.coral_pink)
+            else getColor(R.color.olivine)
+        )
     }
 
     private fun setPeriodToggle(periodType: PeriodType) {
-        // Update UI for selected period
         val btnMonthly = findViewById<TextView>(R.id.btnMonthly)
-        val btnWeekly = findViewById<TextView>(R.id.btnWeekly)
-        val btnDaily = findViewById<TextView>(R.id.btnDaily)
-
-        btnMonthly.background = null
-        btnWeekly.background = null
-        btnDaily.background = null
-
+        val btnWeekly  = findViewById<TextView>(R.id.btnWeekly)
+        val btnDaily   = findViewById<TextView>(R.id.btnDaily)
+        btnMonthly.background = null; btnWeekly.background = null; btnDaily.background = null
         btnMonthly.setTextColor(getColor(R.color.asparagus))
         btnWeekly.setTextColor(getColor(R.color.asparagus))
         btnDaily.setTextColor(getColor(R.color.asparagus))
-
-        // Highlight the selected period
-        when (periodType) {
-            PeriodType.MONTHLY -> {
-                btnMonthly.background = getDrawable(R.drawable.period_toggle_selected)
-                btnMonthly.setTextColor(getColor(android.R.color.white))
-                setMonthlyDateRange()
-            }
-            PeriodType.WEEKLY -> {
-                btnWeekly.background = getDrawable(R.drawable.period_toggle_selected)
-                btnWeekly.setTextColor(getColor(android.R.color.white))
-                setWeeklyDateRange()
-            }
-            PeriodType.DAILY -> {
-                btnDaily.background = getDrawable(R.drawable.period_toggle_selected)
-                btnDaily.setTextColor(getColor(android.R.color.white))
-                setDailyDateRange()
-            }
+        when(periodType) {
+            PeriodType.MONTHLY -> { btnMonthly.background = getDrawable(R.drawable.period_toggle_selected); btnMonthly.setTextColor(getColor(android.R.color.white)); setMonthlyDateRange() }
+            PeriodType.WEEKLY  -> { btnWeekly.background  = getDrawable(R.drawable.period_toggle_selected); btnWeekly.setTextColor(getColor(android.R.color.white)); setWeeklyDateRange() }
+            PeriodType.DAILY   -> { btnDaily.background   = getDrawable(R.drawable.period_toggle_selected); btnDaily.setTextColor(getColor(android.R.color.white)); setDailyDateRange() }
         }
-
-        // Reload data with new date range
         loadBudgetData()
         loadCategorySpending()
     }
 
     private fun setMonthlyDateRange() {
-        startDate = Calendar.getInstance().apply {
-            set(Calendar.DAY_OF_MONTH, 1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        endDate = Calendar.getInstance().apply {
-            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
-            set(Calendar.HOUR_OF_DAY, 23)
-            set(Calendar.MINUTE, 59)
-            set(Calendar.SECOND, 59)
-            set(Calendar.MILLISECOND, 999)
-        }
+        startDate = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH,1); set(Calendar.HOUR_OF_DAY,0); set(Calendar.MINUTE,0); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0) }
+        endDate   = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH,getActualMaximum(Calendar.DAY_OF_MONTH)); set(Calendar.HOUR_OF_DAY,23); set(Calendar.MINUTE,59); set(Calendar.SECOND,59); set(Calendar.MILLISECOND,999) }
     }
-
     private fun setWeeklyDateRange() {
-        val calendar = Calendar.getInstance()
-
-        // Find first day of week
-        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        startDate = calendar.clone() as Calendar
-
-        // Find last day of week
-        calendar.add(Calendar.DAY_OF_WEEK, 6)
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
-        calendar.set(Calendar.MILLISECOND, 999)
-        endDate = calendar.clone() as Calendar
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek); cal.set(Calendar.HOUR_OF_DAY,0); cal.set(Calendar.MINUTE,0); cal.set(Calendar.SECOND,0); cal.set(Calendar.MILLISECOND,0)
+        startDate = cal.clone() as Calendar
+        cal.add(Calendar.DAY_OF_WEEK,6); cal.set(Calendar.HOUR_OF_DAY,23); cal.set(Calendar.MINUTE,59); cal.set(Calendar.SECOND,59); cal.set(Calendar.MILLISECOND,999)
+        endDate = cal.clone() as Calendar
     }
-
     private fun setDailyDateRange() {
         val today = Calendar.getInstance()
-
-        startDate = Calendar.getInstance().apply {
-            set(Calendar.YEAR, today.get(Calendar.YEAR))
-            set(Calendar.MONTH, today.get(Calendar.MONTH))
-            set(Calendar.DAY_OF_MONTH, today.get(Calendar.DAY_OF_MONTH))
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        endDate = Calendar.getInstance().apply {
-            set(Calendar.YEAR, today.get(Calendar.YEAR))
-            set(Calendar.MONTH, today.get(Calendar.MONTH))
-            set(Calendar.DAY_OF_MONTH, today.get(Calendar.DAY_OF_MONTH))
-            set(Calendar.HOUR_OF_DAY, 23)
-            set(Calendar.MINUTE, 59)
-            set(Calendar.SECOND, 59)
-            set(Calendar.MILLISECOND, 999)
-        }
+        startDate = Calendar.getInstance().apply { set(Calendar.YEAR, today.get(Calendar.YEAR)); set(Calendar.MONTH,today.get(Calendar.MONTH)); set(Calendar.DAY_OF_MONTH,today.get(Calendar.DAY_OF_MONTH)); set(Calendar.HOUR_OF_DAY,0);set(Calendar.MINUTE,0);set(Calendar.SECOND,0);set(Calendar.MILLISECOND,0) }
+        endDate   = Calendar.getInstance().apply { set(Calendar.YEAR, today.get(Calendar.YEAR)); set(Calendar.MONTH,today.get(Calendar.MONTH)); set(Calendar.DAY_OF_MONTH,today.get(Calendar.DAY_OF_MONTH)); set(Calendar.HOUR_OF_DAY,23);set(Calendar.MINUTE,59);set(Calendar.SECOND,59);set(Calendar.MILLISECOND,999) }
     }
 
     private fun formatCurrency(amount: Double): String {
@@ -332,12 +233,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Reload data when returning to this screen
         loadBudgetData()
         loadCategorySpending()
     }
 
-    enum class PeriodType {
-        MONTHLY, WEEKLY, DAILY
-    }
+    enum class PeriodType { MONTHLY, WEEKLY, DAILY }
 }

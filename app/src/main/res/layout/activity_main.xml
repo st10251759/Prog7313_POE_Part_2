@@ -230,7 +230,7 @@
             </androidx.cardview.widget.CardView>
 
             <!-- Add Expense Button -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnAddExpense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -241,7 +241,7 @@
                 android:drawablePadding="8dp"
                 android:drawableTint="#FFFFFF"
                 android:gravity="center"
-                android:paddingHorizontal="16dp"
+                android:paddingHorizontal="125dp"
                 android:paddingVertical="12dp"
                 android:text="Add Expense"
                 android:textAllCaps="false"
