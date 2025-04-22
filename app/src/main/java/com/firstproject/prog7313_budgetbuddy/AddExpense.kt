@@ -3,6 +3,7 @@ package com.firstproject.prog7313_budgetbuddy
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -135,6 +136,10 @@ class AddExpenseActivity : AppCompatActivity() {
         )
         btnDot = findViewById(R.id.btnDot)
         btnDelete = findViewById(R.id.btnDelete)
+
+        //Set the background color to grey in backend to override the layout
+        btnToday.setBackgroundColor(Color.parseColor("#D3D3D3"))
+
 
         // Set default date to today
         updateAmountDisplay()
@@ -310,58 +315,59 @@ class AddExpenseActivity : AppCompatActivity() {
     }
 
     private fun showAddCategoryDialog() {
+        // 1) inflate
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_category, null)
+        val etCategoryName    = dialogView.findViewById<EditText>(R.id.etCategoryName)
+        val rg1               = dialogView.findViewById<RadioGroup>(R.id.colorOptions)
+        val rg2               = dialogView.findViewById<RadioGroup>(R.id.colorOptionsRow2)
+        val btnSave           = dialogView.findViewById<Button>(R.id.btnSaveCategory)
+        val btnCancel         = dialogView.findViewById<Button>(R.id.btnCancelCategory)
+        val btnBackCategory   = dialogView.findViewById<ImageView>(R.id.btnBackCategory)
 
-        // Setup dialog view components
-        val etCategoryName = dialogView.findViewById<EditText>(R.id.etCategoryName)
-        val colorOptions = dialogView.findViewById<RadioGroup>(R.id.colorOptions)
-        val colorOptionsRow2 = dialogView.findViewById<RadioGroup>(R.id.colorOptionsRow2)
-        val btnSaveCategory = dialogView.findViewById<Button>(R.id.btnSaveCategory)
-        val btnCancelCategory = dialogView.findViewById<Button>(R.id.btnCancelCategory)
+        // 2) make them mutually exclusive
+        rg1.setOnCheckedChangeListener { _, checkedId ->
+            if (checkedId != -1) rg2.clearCheck()
+        }
+        rg2.setOnCheckedChangeListener { _, checkedId ->
+            if (checkedId != -1) rg1.clearCheck()
+        }
 
-        // Create and display dialog
+        // 3) build dialog
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
-
-        // Make sure dialog doesn't auto-dismiss when buttons are clicked
         dialog.setCancelable(true)
 
-        // Set button listeners
-        btnSaveCategory.setOnClickListener {
-            val categoryName = etCategoryName.text.toString().trim()
-            if (categoryName.isEmpty()) {
+        // 4) save
+        btnSave.setOnClickListener {
+            val name = etCategoryName.text.toString().trim()
+            if (name.isEmpty()) {
                 Toast.makeText(this, "Category name cannot be empty", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Find which color is selected (check both row groups)
-            var selectedColor = "#74D3AE" // Default celadon color
-
-            val radioButtonId1 = colorOptions.checkedRadioButtonId
-            if (radioButtonId1 != -1) {
-                val radioButton = dialogView.findViewById<RadioButton>(radioButtonId1)
-                selectedColor = radioButton.tag?.toString() ?: selectedColor
+            // pick whichever is checked in rg1 or rg2 (they’re now mutually exclusive)
+            val chosenId = rg1.checkedRadioButtonId.takeIf { it != -1 }
+                ?: rg2.checkedRadioButtonId
+            val colorHex = if (chosenId != -1) {
+                (dialogView.findViewById<RadioButton>(chosenId).tag as? String)
+                    ?: "#74D3AE"  // fallback, shouldn’t happen
             } else {
-                val radioButtonId2 = colorOptionsRow2.checkedRadioButtonId
-                if (radioButtonId2 != -1) {
-                    val radioButton = dialogView.findViewById<RadioButton>(radioButtonId2)
-                    selectedColor = radioButton.tag?.toString() ?: selectedColor
-                }
+                "#74D3AE"      // you could also force the user to pick at least one
             }
 
-            // Create new category
-            saveCategory(categoryName, selectedColor)
+            saveCategory(name, colorHex)
             dialog.dismiss()
         }
 
-        btnCancelCategory.setOnClickListener {
-            dialog.dismiss()
-        }
+        // 5) cancel & back both just close
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        btnBackCategory.setOnClickListener { dialog.dismiss() }
 
-        // Show dialog
         dialog.show()
     }
+
+
 
     private fun saveCategory(name: String, colorHex: String) {
         val userId = auth.currentUser?.uid ?: run {

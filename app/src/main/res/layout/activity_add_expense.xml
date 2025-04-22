@@ -28,7 +28,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_arrow_back"
             android:contentDescription="Back"
-            app:tint="@color/olivine" />
+            app:tint="#3CB371" />
 
         <TextView
             android:layout_width="0dp"
@@ -36,7 +36,7 @@
             android:layout_weight="1"
             android:text="Add Expense"
             android:textAlignment="center"
-            android:textColor="@color/olivine"
+            android:textColor="#3CB371"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -315,14 +315,14 @@
                         android:layout_marginEnd="8dp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/ic_calendar"
-                        android:tint="#AAAAAA" />
+                        app:tint="#AAAAAA" />
 
                     <Button
                         android:id="@+id/btnToday"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Today"
-                        android:textColor="@color/celadon"
+                        android:textColor="@color/white"
                         android:background="@null"
                         android:textAllCaps="false"
                         android:layout_marginEnd="8dp"
@@ -358,11 +358,11 @@
                     <ImageButton
                         android:id="@+id/btnAddCategory"
                         android:layout_width="48dp"
-                        android:layout_height="48dp"
+                        android:layout_height="60dp"
                         android:src="@drawable/ic_add"
-                        android:tint="@color/celadon"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Add new category" />
+                        android:contentDescription="Add new category"
+                        app:tint="@color/celadon" />
                 </LinearLayout>
 
                 <!-- Description -->
@@ -391,7 +391,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Receipt (Optional)"
-                    android:textColor="@color/olivine"
+                    android:textColor="@color/celadon"
                     android:textSize="16sp"
                     android:layout_marginBottom="8dp"/>
 
@@ -404,9 +404,9 @@
                         android:id="@+id/btnAddPhoto"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/input_field_bg"
+                        android:backgroundTint="#F5F5F5"
                         android:drawableStart="@drawable/ic_camera"
-                        android:drawableTint="#AAAAAA"
+                        android:drawableTint="#D3D3D3"
                         android:drawablePadding="16dp"
                         android:gravity="start|center_vertical"
                         android:padding="16dp"
