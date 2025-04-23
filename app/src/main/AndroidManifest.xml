@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- Add these permissions -->
+    <!-- Declare that the app may use the camera hardware, but it is not required to run the app -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-
+    <!-- Allows the app to access the device's camera -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Permissions to access device features and storage -->
+    <!-- Allows the app to read from external storage (images, documents, etc.) -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+    <!-- Allows the app to write to external storage -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
-
+    <!-- Application tag contains metadata and components of the app -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -25,33 +28,43 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Prog7313_BudgetBuddy"
         tools:targetApi="31">
+        <!-- Declaration of activities (screens) in the app -->
+
+        <!-- Activity for setting and viewing budget goals -->
         <activity
             android:name=".BudgetGoalsActivity"
             android:exported="false" />
+        <!-- Activity that displays categorized spending data -->
         <activity
             android:name=".CategorySpendingActivity"
             android:exported="false" />
+        <!-- Activity to list all expenses -->
         <activity
             android:name=".ExpenseListActivity"
-            android:exported="false" /> <!-- Add the AddExpenseActivity declaration -->
+            android:exported="false" />
+        <!-- Activity for adding a new expense -->
         <activity
             android:name=".AddExpenseActivity"
             android:exported="false" />
+        <!-- Activity for user registration -->
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
+        <!-- Main dashboard or home screen activity -->
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+        <!-- Login screen; this is the entry point when the app launches -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <!-- Declares this activity as the app's main launcher activity -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Add the FileProvider for handling photos -->
+        </activity>
+        <!-- FileProvider is used to securely share files between apps (e.g., camera images) -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
