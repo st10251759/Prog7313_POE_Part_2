@@ -1,7 +1,32 @@
 package com.firstproject.prog7313_budgetbuddy
 
+/*
+ --------------------------------Project Details----------------------------------
+ STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
+ STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
+ COURSE: BCAD Year 3
+ MODULE: Programming 3C
+ MODULE CODE: PROG7313
+ ASSESSMENT: Portfolio of Evidence (POE) Part 2
+ Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
+ --------------------------------Project Details----------------------------------
+*/
+
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: Basic syntax | Kotlin Documentation
+ Author: Kotlin
+ Date Published: 06 November 2024
+ Date Accessed: 17 April 2025
+ Code Version: v21.20
+ Availability: https://kotlinlang.org/docs/basic-syntax.html
+  --------------------------------Code Attribution----------------------------------
+*/
+
+// Import necessary Android and Kotlin libraries
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +43,7 @@ import java.util.*
 
 class BudgetGoalsActivity : AppCompatActivity() {
 
+    // Firebase ViewModel and authentication
     private lateinit var viewModel: ViewModels
     private lateinit var auth: FirebaseAuth
 
@@ -35,10 +61,12 @@ class BudgetGoalsActivity : AppCompatActivity() {
     private lateinit var btnDot: Button
     private lateinit var btnDelete: Button
 
-    // Data
+    // Budget goal values and dates
     private var currentAmount = "0.00"
     private var minGoalAmount = 0.00
     private var maxGoalAmount = 0.00
+
+    // Set default start and end date for budget goal to current month
     private var startDate = Calendar.getInstance().apply {
         set(Calendar.DAY_OF_MONTH, 1)
         set(Calendar.HOUR_OF_DAY, 0)
@@ -54,7 +82,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         set(Calendar.MILLISECOND, 999)
     }
 
-    // Date formatter
+    // Formatter for displaying month and year
     private val dateFormatter = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,7 +107,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         initializeUI()
         setupListeners()
 
-        // Default to editing minimum budget
+        // Begin with editing the minimum budget
         editingMinimum = true
         highlightActiveField()
 
@@ -87,6 +115,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         loadCurrentBudgetGoal()
     }
 
+    // Find and assign views from layout
     private fun initializeUI() {
         btnBack = findViewById(R.id.btnBack)
         tvMinimumBudget = findViewById(R.id.tvMinimumBudget)
@@ -95,7 +124,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         btnSaveBudget = findViewById(R.id.btnSaveBudget)
         btnCancel = findViewById(R.id.btnCancel)
 
-        // Set the click listeners on tvMinimumBudget and tvMaximumBudget to enable editing
+        // Allow switching between editing min and max values
         tvMinimumBudget.setOnClickListener {
             editingMinimum = true
             highlightActiveField()
@@ -107,6 +136,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
             updateAmountDisplay()
         }
 
+        // Initialize number keypad buttons
         tvMaximumBudget.setOnClickListener {
             editingMinimum = false
             highlightActiveField()
@@ -139,7 +169,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
     }
 
 
-
+    // Set button click listeners
     private fun setupListeners() {
         // Back button
         btnBack.setOnClickListener {
@@ -160,6 +190,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         setupNumericKeypad()
     }
 
+    // Set up numeric keypad
     private fun setupNumericKeypad() {
         for (i in 0..9) {
             numButtons[i].setOnClickListener { addDigit(i.toString()) }
@@ -169,6 +200,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         btnDelete.setOnClickListener { deleteLastDigit() }
     }
 
+    // Adds a digit to the current input
     private fun addDigit(digit: String) {
         if (currentAmount == "0.00") currentAmount = ""
         val newAmount = currentAmount + digit
@@ -179,6 +211,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         }
     }
 
+    // Adds a decimal point if not already present
     private fun addDecimalPoint() {
         if (!currentAmount.contains(".")) {
             currentAmount += "."
@@ -187,6 +220,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         }
     }
 
+    // Deletes the last digit entered
     private fun deleteLastDigit() {
         if (currentAmount.isNotEmpty()) {
             currentAmount = currentAmount.dropLast(1)
@@ -196,14 +230,28 @@ class BudgetGoalsActivity : AppCompatActivity() {
         }
     }
 
+    // Ensures input has a valid currency format (up to 2 decimal places)
     private fun isValidCurrencyFormat(input: String): Boolean {
         return input.matches(Regex("\\d{0,7}(\\.\\d{0,2})?"))
     }
 
+    // Updates amount shown in TextView
     private fun updateAmountDisplay() {
         tvKeypadAmount.text = currentAmount
     }
 
+    /*
+    --------------------------------Code Attribution----------------------------------
+    Title: Exceptions
+    Author: Kotlin
+    Date Published: 2025
+    Date Accessed: 16 April 2025
+    Code Version: v.2.1.20
+    Availability: https://kotlinlang.org/docs/exceptions.html#handle-exceptions-using-try-catch-blocks
+    --------------------------------Code Attribution----------------------------------
+    */
+
+    // Updates the selected budget field with the new value
     private fun updateCurrentFieldValue() {
         try {
             val amount = currentAmount.toDouble()
@@ -215,11 +263,13 @@ class BudgetGoalsActivity : AppCompatActivity() {
                 tvMaximumBudget.text = formatNumber(amount)
             }
         } catch (e: NumberFormatException) {
-            // Handle parsing error
+            //Handle Parsing if incorrect number format
+            Toast.makeText(this, "Invalid amount entered", Toast.LENGTH_SHORT).show()
+            Log.e("BudgetInput", "Failed to parse amount: $currentAmount", e)
         }
     }
 
-    // Helper method to format numbers with commas for thousands
+    // Format the number as currency with commas and 2 decimal places
     private fun formatNumber(number: Double): String {
         val formatter = NumberFormat.getNumberInstance(Locale.getDefault())
         formatter.minimumFractionDigits = 2
@@ -227,7 +277,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         return formatter.format(number)
     }
 
-
+    // Visually indicate which budget value is being edited
     private fun highlightActiveField() {
         // Get the container views
         val minimumBudgetContainer = findViewById<LinearLayout>(R.id.minimumBudgetContainer)
@@ -243,7 +293,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         }
     }
 
-
+    // Loads the current user's budget goals (if any) from the database
     private fun loadCurrentBudgetGoal() {
         val userId = auth.currentUser?.uid ?: run {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
@@ -251,6 +301,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
             return
         }
 
+        // Reflect values on UI
         viewModel.getCurrentBudgetGoal().observe(this) { budgetGoal ->
             budgetGoal?.let {
                 // Set values from existing budget goal
@@ -268,18 +319,20 @@ class BudgetGoalsActivity : AppCompatActivity() {
                     String.format(Locale.getDefault(), "%.2f", maxGoalAmount)
                 }
 
+                //Display refreshed amounts
                 updateAmountDisplay()
             }
         }
     }
 
+    // Validates and saves the budget goal to the database
     private fun saveBudgetGoal() {
         val userId = auth.currentUser?.uid ?: run {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Validate inputs
+        // Validate inputs so they are not null
         if (minGoalAmount <= 0) {
             Toast.makeText(this, "Please set a minimum budget goal", Toast.LENGTH_SHORT).show()
             return
@@ -290,6 +343,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
             return
         }
 
+        //Validate inputs so that Min budget is not greater than max budget
         if (minGoalAmount > maxGoalAmount) {
             Toast.makeText(this, "Minimum budget cannot be greater than maximum budget", Toast.LENGTH_SHORT).show()
             return
@@ -303,6 +357,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
             endDate = endDate.time
         )
 
+        //Display success message
         Toast.makeText(this, "Budget goals saved successfully", Toast.LENGTH_SHORT).show()
         finish()
     }
