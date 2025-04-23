@@ -1,5 +1,39 @@
 package com.firstproject.prog7313_budgetbuddy.viewmodels
+/*
+ --------------------------------Project Details----------------------------------
+ STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
+ STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
+ COURSE: BCAD Year 3
+ MODULE: Programming 3C
+ MODULE CODE: PROG7313
+ ASSESSMENT: Portfolio of Evidence (POE) Part 2
+ Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
+ --------------------------------Project Details----------------------------------
+*/
 
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: Save data in a local database using Room  |  App data and files  |  Android Developers
+ Author: Android Developer
+ Date Published: 2019
+ Date Accessed: 17 April 2025
+ Code Version: v21.20
+ Availability: https://developer.android.com/training/data-storage/room
+  --------------------------------Code Attribution----------------------------------
+*/
+
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: ViewModel overview  |  App architecture  |  Android Developers
+ Author: Android Developer
+ Date Published: 2019
+ Date Accessed: 18 April 2025
+ Code Version: v21.20
+ Availability: https://developer.android.com/topic/libraries/architecture/viewmodel
+  --------------------------------Code Attribution----------------------------------
+*/
+
+// Import necessary Android, Room and Kotlin libraries
 import android.app.Application
 import androidx.lifecycle.*
 import com.firstproject.prog7313_budgetbuddy.BudgetBuddyDatabase
@@ -13,17 +47,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
+// ViewModel class for managing UI-related data in a lifecycle-conscious way
 class ViewModels(application: Application) : AndroidViewModel(application) {
+
+    // Repository to handle all database operations
     private val repository: Repositories
+
+    // Firebase Authentication instance
     private val auth = FirebaseAuth.getInstance()
 
-    // LiveData for UI updates
+    // LiveData to hold the current logged-in Firebase user
     private val _currentUser = MutableLiveData<FirebaseUser?>()
     val currentUser: LiveData<FirebaseUser?> = _currentUser
 
+    // LiveData to track the current selected date range
     private val _currentDateRange = MutableLiveData<Pair<Date, Date>>()
     val currentDateRange: LiveData<Pair<Date, Date>> = _currentDateRange
 
+    // Initialize database, repository, authentication state listener, and default date range
     init {
         val database = BudgetBuddyDatabase.getDatabase(application)
         repository = Repositories(
@@ -33,23 +74,23 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
             database.budgetGoalDao()
         )
 
-        // Set current user
+        // Set initial user state
         _currentUser.value = auth.currentUser
 
-        // Listen for auth changes
+        // Update user state on authentication changes
         auth.addAuthStateListener { firebaseAuth ->
             _currentUser.value = firebaseAuth.currentUser
         }
 
-        // Set default date range to current month
+        // Set default date range to the current month
         setCurrentMonthDateRange()
     }
 
-    // Set date range to current month
+    // Helper function to set the date range to the current month
     private fun setCurrentMonthDateRange() {
         val calendar = Calendar.getInstance()
 
-        // Set to first day of month
+        // Start of the month
         calendar.set(Calendar.DAY_OF_MONTH, 1)
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
@@ -57,7 +98,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         calendar.set(Calendar.MILLISECOND, 0)
         val startDate = calendar.time
 
-        // Set to last day of month
+        // End of the month
         calendar.add(Calendar.MONTH, 1)
         calendar.add(Calendar.DAY_OF_MONTH, -1)
         calendar.set(Calendar.HOUR_OF_DAY, 23)
@@ -65,14 +106,16 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         calendar.set(Calendar.SECOND, 59)
         val endDate = calendar.time
 
+        // Update LiveData with new date range
         _currentDateRange.value = Pair(startDate, endDate)
     }
 
-    // Set custom date range
+    // Function to allow setting a custom date range
     fun setCustomDateRange(startDate: Date, endDate: Date) {
         _currentDateRange.value = Pair(startDate, endDate)
     }
 
+    // Login function using Firebase Authentication
     fun loginWithFirebase(email: String, password: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
@@ -82,10 +125,10 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
             .addOnFailureListener { onFailure(it.message ?: "Authentication failed") }
     }
 
+    // Register a new user and update their display name
     fun registerWithFirebase(email: String, password: String, displayName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnSuccessListener { authResult ->
-                // Update user profile with display name
                 val profileUpdates = UserProfileChangeRequest.Builder()
                     .setDisplayName(displayName)
                     .build()
@@ -100,22 +143,26 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
             .addOnFailureListener { onFailure(it.message ?: "Registration failed") }
     }
 
+    // Sign out current user
     fun signOut() {
         auth.signOut()
         _currentUser.value = null
     }
 
-    // Get current Firebase user ID
+    // Get the currently logged-in user ID
     private fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
     }
 
-    // Category methods
+    // ------------------------ Category Methods ------------------------
+
+    // Fetch all categories for the logged-in user
     fun getAllCategories(): LiveData<List<Category>> {
         val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
         return repository.getAllCategoriesByUser(currentUserId)
     }
 
+    // Create a new category
     fun createCategory(name: String, color: String) = viewModelScope.launch {
         val currentUserId = getCurrentUserId() ?: return@launch
         val category = Category(
@@ -126,34 +173,42 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         repository.insertCategory(category)
     }
 
+    // Update an existing category
     fun updateCategory(category: Category) = viewModelScope.launch {
         repository.updateCategory(category)
     }
 
+    // Delete a category
     fun deleteCategory(category: Category) = viewModelScope.launch {
         repository.deleteCategory(category)
     }
 
-    // Expense methods
+    // ------------------------ Expense Methods ------------------------
+
+    // Fetch all expenses for the logged-in user
     fun getAllExpenses(): LiveData<List<Expense>> {
         val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
         return repository.getAllExpensesByUser(currentUserId)
     }
 
+    // Get expenses within the current date range
     fun getExpensesForPeriod(): LiveData<List<Expense>> {
         val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
         val dateRange = _currentDateRange.value ?: return MutableLiveData(emptyList())
         return repository.getExpensesByPeriod(currentUserId, dateRange.first, dateRange.second)
     }
 
+    // Get the total expense amount for a given period
     fun getTotalExpensesForPeriod(userId: String, startDate: Date, endDate: Date): LiveData<Double> {
         return repository.getTotalExpensesForPeriod(userId, startDate, endDate)
     }
 
+    // Get the current budget goal for a specific user
     fun getCurrentBudgetGoal(userId: String): LiveData<BudgetGoal?> {
         return repository.getCurrentBudgetGoal(userId)
     }
 
+    // Create a new expense, optionally with a photo
     fun createExpense(
         categoryId: Int?,
         categoryName: String,
@@ -166,7 +221,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     ) = viewModelScope.launch {
         val currentUserId = getCurrentUserId() ?: return@launch
 
-        // First create expense without photo
+        // Insert expense
         val expense = Expense(
             userId = currentUserId,
             categoryId = categoryId,
@@ -181,7 +236,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
 
         val expenseId = repository.insertExpense(expense)
 
-        // If photo path is provided, create and link photo
+        // Add photo if provided
         if (!photoPath.isNullOrEmpty()) {
             val photo = Photo(
                 expenseId = expenseId.toInt(),
@@ -201,12 +256,13 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Update an existing expense
     fun updateExpense(expense: Expense) = viewModelScope.launch {
         repository.updateExpense(expense)
     }
 
+    // Delete an expense and its associated photo
     fun deleteExpense(expense: Expense) = viewModelScope.launch {
-        // First check if there's a photo to delete
         expense.photoId?.let { photoIdStr ->
             try {
                 val photoId = photoIdStr.toInt()
@@ -214,62 +270,62 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
                     repository.deletePhoto(photo)
                 }
             } catch (e: NumberFormatException) {
-                // Invalid photo ID, ignore
+                // Handle invalid photo ID
             }
         }
-
-        // Then delete the expense
         repository.deleteExpense(expense)
     }
 
+    // Get all expenses by category
     fun getExpensesByCategory(categoryId: Int): LiveData<List<Expense>> {
         val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
         return repository.getExpensesByCategory(currentUserId, categoryId)
     }
 
+    // Get total expenses within current date range
     fun getTotalExpensesForPeriod(): LiveData<Double> {
         val currentUserId = getCurrentUserId() ?: return MutableLiveData(0.0)
         val dateRange = _currentDateRange.value ?: return MutableLiveData(0.0)
         return repository.getTotalExpensesForPeriod(currentUserId, dateRange.first, dateRange.second)
     }
 
+    // Update budget goal
     fun updateBudgetGoal(budgetGoal: BudgetGoal) = viewModelScope.launch {
         repository.updateBudgetGoal(budgetGoal)
     }
 
+    // Delete budget goal
     fun deleteBudgetGoal(budgetGoal: BudgetGoal) = viewModelScope.launch {
         repository.deleteBudgetGoal(budgetGoal)
     }
 
-    // Photo methods
+    // ------------------------ Photo Methods ------------------------
+
+    // Get a photo by expense ID
     suspend fun getPhotoByExpenseId(expenseId: Int): Photo? {
         return repository.getPhotoByExpenseId(expenseId)
     }
 
-    /**
-     * Gets expenses for a specific period synchronously.
-     * This is used by the ExpenseListActivity.
-     */
+    // Get expenses by period for specific user (used in activities)
     fun getExpensesByPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<Expense>> {
         return repository.getExpensesByPeriod(userId, startDate, endDate)
     }
 
-    /**
-     * Gets a photo by its ID synchronously.
-     * Used when accessing receipt photos from the expense list.
-     */
+    // Get photo by ID (used when accessing receipts)
     suspend fun getPhotoById(photoId: Int): Photo? {
         return withContext(Dispatchers.IO) {
             repository.getPhotoById(photoId)
         }
     }
 
+    // Get spending per category for a specific period and calculate percentage of total
     fun getCategorySpendingForPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<CategoryWithAmount>> {
         val result = MediatorLiveData<List<CategoryWithAmount>>()
 
         val totalExpensesLiveData = repository.getTotalExpensesForPeriod(userId, startDate, endDate)
         val categoriesLiveData = repository.getCategorySpendingForPeriod(userId, startDate, endDate)
 
+        // Observe both total and categories to compute percentages
         result.addSource(totalExpensesLiveData) { totalAmount ->
             val categories = categoriesLiveData.value
             if (categories != null) {
@@ -287,6 +343,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         return result
     }
 
+    // Helper function to calculate category percentage from total spending
     private fun calculateCategoryWithAmounts(
         categories: List<CategorySpending>,
         totalAmount: Double
@@ -302,17 +359,13 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * Gets the current budget goal for the logged-in user
-     */
+    // Get budget goal for the current user
     fun getCurrentBudgetGoal(): LiveData<BudgetGoal?> {
         val currentUserId = getCurrentUserId() ?: return MutableLiveData(null)
         return repository.getCurrentBudgetGoal(currentUserId)
     }
 
-    /**
-     * Creates a new budget goal for the current month
-     */
+    // Create a new budget goal
     fun createBudgetGoal(minAmount: Double, maxAmount: Double, startDate: Date, endDate: Date) = viewModelScope.launch {
         val currentUserId = getCurrentUserId() ?: return@launch
 
@@ -383,11 +436,6 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
 
         return result
     }
-
-
-
-
-
 
 
 }

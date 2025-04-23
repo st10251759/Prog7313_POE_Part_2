@@ -35,18 +35,28 @@ import com.firstproject.prog7313_budgetbuddy.R
 import com.firstproject.prog7313_budgetbuddy.data.entities.CategoryWithAmount
 import java.text.NumberFormat
 import java.util.Locale
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: Create dynamic lists with RecyclerView  |  Views  |  Android Developers
+ Author: Android Developers
+ Date Published: 2025
+ Date Accessed: 18 April 2025
+ Code Version: N/A
+ Availability: https://developer.android.com/develop/ui/views/layout/recyclerview#next-steps
+ --------------------------------Code Attribution----------------------------------
+*/
 
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: Adapter  |  API reference  |  Android Developers
+ Author: Android Developer
+ Date Published: 2019
+ Date Accessed: 17 April 2025
+ Code Version: v21.20
+ Availability: https://developer.android.com/reference/android/widget/Adapter
+  --------------------------------Code Attribution----------------------------------
+*/
 // Adapter for displaying category spending data in a RecyclerView
-    /*
-     --------------------------------Code Attribution----------------------------------
-    Title: Create dynamic lists with RecyclerView  |  Views  |  Android Developers
-    Author: Android Developers
-    Date Published: 2025
-    Date Accessed: 18 April 2025
-    Code Version: N/A
-    Availability: https://developer.android.com/develop/ui/views/layout/recyclerview#next-steps
-    --------------------------------Code Attribution----------------------------------
-    */
 class CategorySpendingAdapter(
     // List of category spending data
     private var categories: List<CategoryWithAmount>

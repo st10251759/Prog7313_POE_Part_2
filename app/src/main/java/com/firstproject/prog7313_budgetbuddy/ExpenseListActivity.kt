@@ -1,5 +1,37 @@
 package com.firstproject.prog7313_budgetbuddy
+/*
+ --------------------------------Project Details----------------------------------
+ STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
+ STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
+ COURSE: BCAD Year 3
+ MODULE: Programming 3C
+ MODULE CODE: PROG7313
+ ASSESSMENT: Portfolio of Evidence (POE) Part 2
+ Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
+ --------------------------------Project Details----------------------------------
+*/
 
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: Save data in a local database using Room  |  App data and files  |  Android Developers
+ Author: Android Developer
+ Date Published: 2019
+ Date Accessed: 17 April 2025
+ Code Version: v21.20
+ Availability: https://developer.android.com/training/data-storage/room
+  --------------------------------Code Attribution----------------------------------
+
+  --------------------------------Code Attribution----------------------------------
+ Title: Basic syntax | Kotlin Documentation
+ Author: Kotlin
+ Date Published: 06 November 2024
+ Date Accessed: 17 April 2025
+ Code Version: v21.20
+ Availability: https://kotlinlang.org/docs/basic-syntax.html
+  --------------------------------Code Attribution----------------------------------
+*/
+
+//Imports
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -32,9 +64,20 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: Adapter  |  API reference  |  Android Developers
+ Author: Android Developer
+ Date Published: 2019
+ Date Accessed: 17 April 2025
+ Code Version: v21.20
+ Availability: https://developer.android.com/reference/android/widget/Adapter
+  --------------------------------Code Attribution----------------------------------
+*/
 
+// This activity displays a list of expenses for the current user within a selected date range
 class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClickListener {
-
+    //Variables for Firebase, ViewModels and ExpenseAdapter Class
     private lateinit var viewModel: ViewModels
     private lateinit var auth: FirebaseAuth
     private lateinit var adapter: ExpenseListAdapter
@@ -55,6 +98,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         set(Calendar.SECOND, 0)
         set(Calendar.MILLISECOND, 0)
     }
+    // Initialize toDate to the last day of the current month at 23:59:59
     private var toDate = Calendar.getInstance().apply {
         set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH)) // Last day of current month
         set(Calendar.HOUR_OF_DAY, 23)
@@ -67,7 +111,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_expense_list)
-
+        // Apply window insets for edge-to-edge display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -88,6 +132,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         loadExpenses()
     }
 
+    // Initialize and bind UI components
     private fun initializeUI() {
         rvExpenses = findViewById(R.id.rvExpenses)
         etFromDate = findViewById(R.id.etFromDate)
@@ -95,15 +140,16 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         tvTotalExpenses = findViewById(R.id.tvTotalExpenses)
         btnBack = findViewById(R.id.btnBack)
 
-        // Setup RecyclerView
+        // Setup RecyclerView with adapter
         adapter = ExpenseListAdapter(emptyList(), this)
         rvExpenses.layoutManager = LinearLayoutManager(this)
         rvExpenses.adapter = adapter
 
-        // Initialize date fields with current month range
+        // Display default date range
         updateDateDisplays()
     }
 
+    // Attach listeners to buttons and fields
     private fun setupListeners() {
         // Back button
         btnBack.setOnClickListener {
@@ -121,9 +167,11 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         }
     }
 
+    // Display a date picker dialog
     private fun showDatePicker(isFromDate: Boolean) {
         val calendar = if (isFromDate) fromDate else toDate
 
+        // Update calendar with selected date
         val datePickerDialog = DatePickerDialog(
             this,
             { _, year, month, dayOfMonth ->
@@ -145,6 +193,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
                     toDate = calendar
                 }
 
+                // Refresh UI and data
                 updateDateDisplays()
                 loadExpenses()
             },
@@ -153,6 +202,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
             calendar.get(Calendar.DAY_OF_MONTH)
         )
 
+        // Validation to Limit date range selection
         // If setting "to date", limit the minimum date to the "from date"
         if (!isFromDate) {
             datePickerDialog.datePicker.minDate = fromDate.timeInMillis
@@ -166,11 +216,13 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         datePickerDialog.show()
     }
 
+    // Update the displayed "From" and "To" dates
     private fun updateDateDisplays() {
         etFromDate.setText(dateFormatter.format(fromDate.time))
         etToDate.setText(dateFormatter.format(toDate.time))
     }
 
+    // Fetch expenses from database for the selected date range
     private fun loadExpenses() {
         val userId = auth.currentUser?.uid
 
@@ -184,6 +236,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         }
     }
 
+    // Calculate and display the total amount of expenses
     private fun updateTotalAmount(expenses: List<Expense>) {
         val total = expenses.sumOf { it.totalAmount }
         val formattedTotal = String.format(Locale.getDefault(), "R%,.2f", total)
@@ -192,9 +245,10 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
 
     override fun onExpenseClicked(expense: Expense) {
         // Handle expense item click if needed
-        // For example, show expense details or allow editing
+        // For example, show expense details or allow editing - Will be used in Part 3
     }
 
+    // Callback when the "Download Receipt" button is clicked
     override fun onDownloadReceiptClicked(expense: Expense) {
         expense.photoId?.let { photoIdStr ->
             lifecycleScope.launch {
@@ -243,6 +297,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
                         return@launch
                     }
 
+                    // Check if file exists and is valid
                     if (!photoFile.isFile) {
                         Log.e("ExpenseListActivity", "Path is not a file: ${photoFile.absolutePath}")
                         Toast.makeText(
