@@ -35,6 +35,7 @@ import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import android.util.Log  //import for logging
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -613,56 +614,88 @@ class AddExpenseActivity : AppCompatActivity() {
         }
     }
 
-    // Gathers data and saves a new expense entry
+    /*
+     --------------------------------Code Attribution----------------------------------
+     Title: Log  |  API reference  |  Android Developers
+     Author: Android Developers
+     Date Published: 2019
+     Date Accessed: 24 April 2024
+     Code Version: v21.20
+     Availability: https://developer.android.com/reference/android/util/Log
+      --------------------------------Code Attribution----------------------------------
+    */
+
+    // This function gathers all user inputs and saves a new expense entry to the database.
+// It includes validation checks, user feedback via Toasts, and logs important steps using Android's Log utility.
     private fun saveExpense() {
-        // Ensure user is authenticated
+
+        // Tag used for logging from this Activity. It helps filter log messages related to expense creation.
+        val TAG = "AddExpenseActivity"
+
+        // Check if the user is authenticated.
+        // If not, show a message and exit early. Logging a warning because this is a user-level issue that shouldn't normally happen.
         val userId = auth.currentUser?.uid ?: run {
+            Log.w(TAG, "User not authenticated") // Warn about the missing user authentication.
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Ensure at least one category exists
+        // Check if there are any existing categories to assign to this expense.
+        // If no categories exist, show a prompt and trigger a dialog to add one.
+        Log.d(TAG, "Checking if categories exist")
         if (categories.isEmpty()) {
+            Log.w(TAG, "No categories available. Prompting to add a category.") // Log a warning for missing categories.
             Toast.makeText(this, "Please create a category first", Toast.LENGTH_SHORT).show()
             showAddCategoryDialog()
             return
         }
 
-        // Validate that a category has been selected
+        // Ensure the user has selected a category before saving the expense.
+        // If not, show a message and exit early.
         if (selectedCategoryId == null && selectedCategoryName.isEmpty()) {
+            Log.w(TAG, "No category selected.") // Warn that the user has not selected a category.
             Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Ensure description is not empty
+        // Validate that a description has been entered by the user.
+        // This is necessary context for the expense.
         val description = etDescription.text.toString().trim()
         if (description.isEmpty()) {
+            Log.w(TAG, "Description is empty.") // Warn that the description input is missing.
             Toast.makeText(this, "Please enter a description", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Parse the entered amount to a number
+        // Attempt to parse the amount input into a valid double.
+        // If parsing fails, log an error with the exception and exit early.
         val amount = try {
             currentAmount.toDouble()
         } catch (e: NumberFormatException) {
+            Log.e(TAG, "Invalid amount entered: $currentAmount", e) // Log error and include exception stack trace.
             Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Create the Expense data object
+        // Log key information before proceeding with saving.
+        // This is useful for debugging and tracking the expense being created.
+        Log.i(TAG, "Creating new expense with amount: $amount, description: $description, category: $selectedCategoryName")
+
+        // Create the Expense data object with all necessary fields.
         val expense = Expense(
             userId = userId,
             categoryId = selectedCategoryId,
             category = selectedCategoryName,
             expenseDate = selectedDate.time,
-            startTime = null,  // Not needed in this UI
-            endTime = null,    // Not needed in this UI
+            startTime = null,  // Not required in this version of the UI
+            endTime = null,    // Not required in this version of the UI
             description = description,
             totalAmount = amount,
-            photoId = null // This could be updated later with an ID
+            photoId = null // Optional field, may be populated later if a receipt photo is attached
         )
 
-        // Save the expense using the ViewModel
+        //  Instantiate the expense using the ViewModel.
+        // All relevant fields are passed to ensure the record is saved completely.
         viewModel.createExpense(
             categoryId = selectedCategoryId,
             categoryName = selectedCategoryName,
@@ -671,11 +704,16 @@ class AddExpenseActivity : AppCompatActivity() {
             endTime = null,
             description = description,
             amount = amount,
-            photoPath = photoFilePath  // Include path to receipt image if available
+            photoPath = photoFilePath  // Optional field for an image receipt
         )
 
-        // Notify user and finish activity
+        //  Log that the expense was successfully saved.
+        // Logging the complete expense object helps with post-mortem analysis or debugging.
+        Log.d(TAG, "Expense saved successfully!")
+
+        // Step 10: Notify the user that the save was successful and close the screen.
         Toast.makeText(this, "Expense saved successfully", Toast.LENGTH_SHORT).show()
         finish()
     }
+
 }
