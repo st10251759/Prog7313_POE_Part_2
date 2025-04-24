@@ -15,7 +15,7 @@ class BudgetGoalsActivityUnitTest {
         assertTrue("Should be valid", "100".matches(regex))
         assertTrue("Should be valid", "0".matches(regex))
         assertFalse("Should not be valid", "123.456".matches(regex))
-        assertFalse("Should not be valid", "12345678".matches(regex)) // 8 digits before decimal
+        assertFalse("Should not be valid", "12345678".matches(regex))
         assertFalse("Should not be valid", "123.1.1".matches(regex))
         assertFalse("Should not be valid", "abc".matches(regex))
     }
