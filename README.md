@@ -289,7 +289,3 @@ The team achieved a 99% score in the previous submission.
 [stars-url]: https://github.com/st10251759/Prog7313_POE_Part_2/stargazers
 [issues-shield]: https://img.shields.io/github/issues/st10251759/Prog7313_POE_Part_2.svg?style=for-the-badge
 [issues-url]: https://github.com/st10251759/Prog7313_POE_Part_2/issues
-```
-
-
-
