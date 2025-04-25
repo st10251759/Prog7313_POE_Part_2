@@ -32,8 +32,6 @@
 
 ## App Overview
 
-<img src="papa 1.png" alt="BudgetBuddy Logo" width="120"/>
-
 BudgetBuddy is a mobile application that simplifies personal finance management through expense tracking, budgeting, and financial goal management. It features a clean, approachable interface with a mint green colour scheme, allowing users to create customized expense categories, set monthly budget limits, and log transactions. The homepage provides a quick overview of budget status, spending trends, and category-wise expenditure breakdowns.
 
 Users can track spending patterns through visualizations and earn badges for consistent expense logging. The app also incorporates gamification elements, making financial discipline more engaging. Users can customize categories with images or icons for visual impact. The Budget Assistant chatbot offers financial guidance and assistance. The app also offers a smart transaction search, detailed expense listings, and savings tracking feature.
