@@ -17,6 +17,35 @@
   </p>
 </p>
 
+## Table of Contents
+
+- [Team Details](#team-details)
+- [App Overview](#app-overview)
+- [Built With](#built-with)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation (Installing and Running the APK)](#installation-installing-and-running-the-apk)
+    - [Method 1: Using Android Studio Emulator](#method-1-using-android-studio-emulator)
+    - [Method 2: Using Command Line](#method-2-using-command-line)
+      - [For Windows](#for-windows)
+      - [For macOS/Linux](#for-macoslinux)
+    - [Troubleshooting](#troubleshooting)
+- [Repository Contents](#repository-contents)
+- [Sprints](#sprints)
+  - [Sprint Part 1: Research and Planning](#sprint-part-1-research-and-planning)
+  - [Sprint Part 2: Prototype Development](#sprint-part-2-prototype-development)
+  - [Sprint Part 3: Final Application Build](#sprint-part-3-final-application-build)
+- [Cloning the Project and Restoring the Database](#cloning-the-project-and-restoring-the-database)
+  - [Prerequisites](#prerequisites-1)
+  - [Cloning Steps](#cloning-steps)
+- [Lecturer Feedback](#lecturer-feedback)
+- [Functionality and App Usage](#functionality-and-app-usage)
+  - [User Registration and Authentication](#user-registration-and-authentication)
+  - [Expense Management](#expense-management)
+  - [Reporting and Insights](#reporting-and-insights)
+- [Future Requirements](#future-requirements)
+- [Contributors](#contributors)
+
 ---
 
 ## Team Details
@@ -262,5 +291,5 @@ The team achieved a 99% score in the previous submission.
 [issues-url]: https://github.com/st10251759/Prog7313_POE_Part_2/issues
 ```
 
----
+
 
