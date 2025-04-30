@@ -13,8 +13,11 @@
   <p align="center">
     Mobile Budget Tracking Application
     <br />
-    <a href="https://github.com/st10251759/Prog7313_POE_Part_2"><strong>View Repository »</strong></a>
-    <a href="https://youtu.be/COrigaYn4M8 " target="_blank"><strong>Watch video demonstration on YouTube »</strong></a>
+    <a href="https://github.com/st10251759/Prog7313_POE_Part_2"><strong>View Repository »</strong></a><br>
+
+<a href="https://youtu.be/COrigaYn4M8" target="_blank">
+  <img src="https://img.shields.io/badge/Watch%20on-YouTube-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch on YouTube">
+</a>
   </p>
 </p>
 
