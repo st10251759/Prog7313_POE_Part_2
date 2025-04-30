@@ -14,6 +14,7 @@
     Mobile Budget Tracking Application
     <br />
     <a href="https://github.com/st10251759/Prog7313_POE_Part_2"><strong>View Repository »</strong></a>
+    <a href="https://youtu.be/COrigaYn4M8 " target="_blank"><strong>Watch video demonstration on YouTube »</strong></a>
   </p>
 </p>
 
