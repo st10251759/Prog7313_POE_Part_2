@@ -129,14 +129,14 @@ This is an example of how you may give instructions on setting up your project l
 
 ```sh
 cd C:\Users\YourUsername\AppData\Local\Android\Sdk\platform-tools
-adb install "path\to\your\BudgetBuddy.apk"
+adb install "path\to\your\app-release.apk"
 
 ```
 ##### For macOS/Linux
 
 ```sh
 cd ~/Library/Android/sdk/platform-tools
-./adb install /path/to/BudgetBuddy.apk
+./adb install /path/to/app-release.apk
 ```
 
 #### Troubleshooting
