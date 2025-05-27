@@ -28,6 +28,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.ImageButton
+
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -46,7 +47,7 @@ import java.util.Date
 import java.util.Locale
 
 // Activity that displays a user's spending grouped by categories within a selected date range.
-class CategorySpendingActivity : AppCompatActivity() {
+class CategorySpendingActivity : BaseActivity() {
     // ViewModel that interacts with the repository to fetch category spending data.
     private lateinit var viewModel: ViewModels
     // FirebaseAuth instance for accessing the currently logged-in user
@@ -60,6 +61,7 @@ class CategorySpendingActivity : AppCompatActivity() {
     private lateinit var etToDate: EditText
     private lateinit var tvTotalSpending: TextView
     private lateinit var btnBack: ImageButton
+    private lateinit var btnThemeToggle: ImageButton
 
     // Date formatter for displaying dates in MM/dd/yyyy format
     private val dateFormatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
@@ -129,6 +131,7 @@ class CategorySpendingActivity : AppCompatActivity() {
         etToDate = findViewById(R.id.etToDate)
         tvTotalSpending = findViewById(R.id.tvTotalSpending)
         btnBack = findViewById(R.id.btnBack)
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
 
         // Set up RecyclerView with an empty list and LinearLayoutManager
         adapter = CategorySpendingAdapter(emptyList())
@@ -137,6 +140,8 @@ class CategorySpendingActivity : AppCompatActivity() {
 
         // Initialize date fields with current month range
         updateDateDisplays()
+        setupThemeToggle(btnThemeToggle)
+
     }
 
     // Sets click listeners for buttons and date pickers

@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Add these colors to your existing colors.xml file -->
+    <!-- Regular mode colors -->
     <color name="celadon">#74D3AE</color>
     <color name="asparagus">#678D58</color>
     <color name="olivine">#A6C48A</color>
     <color name="champagne">#F6E7CB</color>
     <color name="coral_pink">#DD9787</color>
+
+    <!-- Background colors for regular mode -->
+    <color name="background_primary">#FFFFFF</color>
+    <color name="background_secondary">#F5F5F5</color>
+    <color name="background_card">#FFFFFF</color>
+
+    <!-- Text colors for regular mode -->
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#333333</color>
+    <color name="text_tertiary">#666666</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

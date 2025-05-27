@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="@color/background_primary"
     tools:context=".MainActivity">
 
     <!-- Header with app logo and name -->
@@ -28,13 +28,24 @@
 
         <TextView
             android:id="@+id/tvAppName"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:text="BudgetBuddy"
             android:textColor="@color/asparagus"
             android:textSize="18sp"
             android:textStyle="bold" />
+
+        <!-- Theme Toggle Button -->
+        <ImageButton
+            android:id="@+id/btnThemeToggle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_moon"
+            android:contentDescription="Toggle theme"
+            app:tint="@color/asparagus" />
 
     </LinearLayout>
 
@@ -57,6 +68,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
+                android:backgroundTint="@color/background_card"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
@@ -146,7 +158,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Total Budget"
-                            android:textColor="#888888"
+                            android:textColor="@color/text_tertiary"
                             android:textSize="14sp" />
 
                         <View
@@ -159,7 +171,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="R2,500.00"
-                            android:textColor="#000000"
+                            android:textColor="@color/text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -186,7 +198,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="min R1000"
-                            android:textColor="#888888"
+                            android:textColor="@color/text_tertiary"
                             android:textSize="12sp" />
 
                         <View
@@ -199,7 +211,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="max R2000"
-                            android:textColor="#888888"
+                            android:textColor="@color/text_tertiary"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -255,6 +267,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
+                android:backgroundTint="@color/background_card"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
@@ -306,7 +319,7 @@
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/background_card"
         android:elevation="8dp"
         android:orientation="horizontal"
         android:paddingTop="8dp"
@@ -356,14 +369,14 @@
                 android:layout_height="24dp"
                 android:contentDescription="Expense List"
                 android:src="@drawable/ic_expense_list"
-                app:tint="#888888" />
+                app:tint="@color/text_tertiary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Expense List"
-                android:textColor="#888888"
+                android:textColor="@color/text_tertiary"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -383,14 +396,14 @@
                 android:layout_height="24dp"
                 android:contentDescription="Category Spending"
                 android:src="@drawable/ic_category"
-                app:tint="#888888" />
+                app:tint="@color/text_tertiary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Category Spending"
-                android:textColor="#888888"
+                android:textColor="@color/text_tertiary"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -410,14 +423,14 @@
                 android:layout_height="24dp"
                 android:contentDescription="Budget Goals"
                 android:src="@drawable/ic_budget"
-                app:tint="#888888" />
+                app:tint="@color/text_tertiary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Budget Goals"
-                android:textColor="#888888"
+                android:textColor="@color/text_tertiary"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>

@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F8F5"
+    android:background="@color/background_primary"
     tools:context=".BudgetGoalsActivity">
 
     <!-- Header with back button and title -->
@@ -41,7 +41,14 @@
             android:textColor="#3CB371"
             android:textSize="20sp"
             android:textStyle="bold" />
-
+        <ImageButton
+            android:id="@+id/btnThemeToggle"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_moon"
+            android:contentDescription="Toggle theme"
+            app:tint="#3CB371" />
         <View
             android:layout_width="28dp"
             android:layout_height="28dp" />

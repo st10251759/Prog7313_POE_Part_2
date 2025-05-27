@@ -27,12 +27,14 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AddExpenseActivity : AppCompatActivity() {
+class AddExpenseActivity  : BaseActivity() {
+
 
     // Declare variables ViewModel and Firebase authentication
     private lateinit var viewModel: ViewModels
     private lateinit var auth: FirebaseAuth
-
+    // Add this variable to your existing UI components
+    private lateinit var btnThemeToggle: ImageButton
     // Variables for UI Components
     private lateinit var tvTotalAmount: TextView
     private lateinit var etDate: EditText
@@ -122,6 +124,7 @@ class AddExpenseActivity : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
         btnToday = findViewById(R.id.btnToday)
         btnAddCategory = findViewById(R.id.btnAddCategory)
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
 
         // Initialize numeric keypad
         numButtons = listOf(
@@ -141,7 +144,8 @@ class AddExpenseActivity : AppCompatActivity() {
 
         //Set the background color to grey in backend to override the layout
         btnToday.setBackgroundColor(Color.parseColor("#D3D3D3"))
-
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
+        setupThemeToggle(btnThemeToggle)
         // Set default date to today
         updateAmountDisplay()
         updateDateDisplay()

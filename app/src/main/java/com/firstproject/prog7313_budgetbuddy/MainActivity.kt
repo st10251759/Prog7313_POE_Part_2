@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.firstproject.prog7313_budgetbuddy.adapters.HomeCategoryAdapter
 import com.firstproject.prog7313_budgetbuddy.data.models.BudgetGoal
+import com.firstproject.prog7313_budgetbuddy.utils.ThemeManager
 import com.firstproject.prog7313_budgetbuddy.viewmodels.ViewModels
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -25,7 +27,7 @@ import java.util.Calendar
 import java.util.Locale
 
 //Home Dashboard - Main Activity responsible for displaying budget data, expense categories, and controlling UI elements
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private lateinit var viewModel: ViewModels
     private lateinit var auth: FirebaseAuth
@@ -40,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvEditBudgetGoals: TextView
     private lateinit var budgetProgressBar: ProgressBar
     private lateinit var rvCategorySpending: RecyclerView
+    private lateinit var btnThemeToggle: ImageButton
 
     // Date range for showing data (start and end of current month by default)
     private var startDate = Calendar.getInstance().apply {
@@ -66,6 +69,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Initialize theme
+
         enableEdgeToEdge() // Enabling edge-to-edge layout
         setContentView(R.layout.activity_main)
 
@@ -135,12 +140,16 @@ class MainActivity : AppCompatActivity() {
         tvEditBudgetGoals = findViewById(R.id.tvEditBudgetGoals)
         budgetProgressBar = findViewById(R.id.budgetProgressBar)
         rvCategorySpending = findViewById(R.id.rvCategorySpending)
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
 
         // Set up the adapter for category spending and RecyclerView layout
         adapter = HomeCategoryAdapter(emptyList())
         rvCategorySpending.layoutManager = LinearLayoutManager(this)
         rvCategorySpending.adapter = adapter
         rvCategorySpending.isNestedScrollingEnabled = false
+        // Setup theme toggle
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
+        setupThemeToggle(btnThemeToggle)
     }
 
     // Set up listeners for user interactions with buttons and views

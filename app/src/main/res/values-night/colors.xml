@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Night mode colors -->
+    <color name="celadon">#4A8B6B</color>
+    <color name="asparagus">#5A7A4A</color>
+    <color name="olivine">#7BA068</color>
+    <color name="champagne">#C4B59A</color>
+    <color name="coral_pink">#B87A6B</color>
+
+    <!-- Background colors for night mode -->
+    <color name="background_primary">#1A1A1A</color>
+    <color name="background_secondary">#2D2D2D</color>
+    <color name="background_card">#333333</color>
+
+    <!-- Text colors for night mode -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#CCCCCC</color>
+    <color name="text_tertiary">#999999</color>
+
+    <!-- Accent colors -->
+    <color name="black">#FFFFFF</color>
+    <color name="white">#1A1A1A</color>
+</resources>

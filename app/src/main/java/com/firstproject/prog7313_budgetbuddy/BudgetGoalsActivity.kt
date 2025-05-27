@@ -12,7 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import java.text.DecimalFormat
 import java.util.*
 
-class BudgetGoalsActivity : AppCompatActivity() {
+class BudgetGoalsActivity : BaseActivity() {
 
     // ViewModel and Firebase authentication
     private lateinit var viewModel: ViewModels
@@ -27,6 +27,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
     private lateinit var maximumBudgetContainer: LinearLayout
     private lateinit var btnSaveBudget: Button
     private lateinit var btnCancel: Button
+    private lateinit var btnThemeToggle: ImageButton
 
     // Numeric keypad buttons
     private lateinit var numButtons: List<Button>
@@ -74,6 +75,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         maximumBudgetContainer = findViewById(R.id.maximumBudgetContainer)
         btnSaveBudget = findViewById(R.id.btnSaveBudget)
         btnCancel = findViewById(R.id.btnCancel)
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
 
         // Initialize numeric keypad
         numButtons = listOf(
@@ -90,6 +92,7 @@ class BudgetGoalsActivity : AppCompatActivity() {
         )
         btnDot = findViewById(R.id.btnDot)
         btnDelete = findViewById(R.id.btnDelete)
+        setupThemeToggle(btnThemeToggle)
 
         // Set initial selection to minimum budget
         updateSelectionHighlight()

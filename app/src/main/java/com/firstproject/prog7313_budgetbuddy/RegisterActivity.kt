@@ -46,7 +46,7 @@ import com.google.firebase.auth.UserProfileChangeRequest
   --------------------------------Code Attribution----------------------------------
 */
 // Activity responsible for user registration functionality
-class RegisterActivity : AppCompatActivity() {
+class RegisterActivity : BaseActivity() {
 
     // Firebase authentication instance
     private lateinit var auth: FirebaseAuth

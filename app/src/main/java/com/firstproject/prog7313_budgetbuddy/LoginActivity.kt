@@ -27,22 +27,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.firstproject.prog7313_budgetbuddy.RegisterActivity
-import com.firstproject.prog7313_budgetbuddy.MainActivity
-import com.firstproject.prog7313_budgetbuddy.R
 import com.google.firebase.auth.FirebaseAuth
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 
 /*
  --------------------------------Code Attribution----------------------------------
- Title: Get Started with Firebase Authentication on Android  |  Firebase
+ Title: Get Started with Firebase Authentication on Android  |  Firebase
  Author: Firebase
  Date Published: 2019
  Date Accessed: 16 April 2025
@@ -52,13 +47,14 @@ import kotlinx.coroutines.launch
 */
 
 // Activity for handling user login functionality
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : BaseActivity() {
 
     // Declare UI elements and FirebaseAuth instance
     private lateinit var etEmail: EditText
     private lateinit var etPassword: EditText
     private lateinit var btnLogin: Button
     private lateinit var btnRegisterPage: TextView
+    private lateinit var btnThemeToggle: ImageButton
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,11 +75,20 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         // Initialize UI components
+        initializeUI()
+        setupListeners()
+    }
+
+    private fun initializeUI() {
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etPassword)
         btnLogin = findViewById(R.id.btnLogin)
         btnRegisterPage = findViewById(R.id.btnRegisterPage)
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
 
+         }
+
+    private fun setupListeners() {
         // Set up listener for login button
         btnLogin.setOnClickListener {
             // Retrieve user inputs
@@ -123,6 +128,3 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 }
-
-
-

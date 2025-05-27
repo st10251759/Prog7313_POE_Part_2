@@ -33,11 +33,12 @@ import java.util.Date
 import java.util.Locale
 
 // This activity displays a list of expenses for the current user within a selected date range
-class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClickListener {
+class ExpenseListActivity : BaseActivity() , ExpenseListAdapter.ExpenseClickListener {
     //Variables for Firebase, ViewModels and ExpenseAdapter Class
     private lateinit var viewModel: ViewModels
     private lateinit var auth: FirebaseAuth
     private lateinit var adapter: ExpenseListAdapter
+    private lateinit var btnThemeToggle: ImageButton
 
     // UI Components
     private lateinit var rvExpenses: RecyclerView
@@ -96,11 +97,13 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         etToDate = findViewById(R.id.etToDate)
         tvTotalExpenses = findViewById(R.id.tvTotalExpenses)
         btnBack = findViewById(R.id.btnBack)
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
 
         // Setup RecyclerView with adapter
         adapter = ExpenseListAdapter(emptyList(), this)
         rvExpenses.layoutManager = LinearLayoutManager(this)
         rvExpenses.adapter = adapter
+        setupThemeToggle(btnThemeToggle)
 
         // Display default date range
         updateDateDisplays()
