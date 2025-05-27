@@ -1,29 +1,6 @@
 package com.firstproject.prog7313_budgetbuddy.adapters
 
-/*
- --------------------------------Project Details----------------------------------
- STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
- STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
- COURSE: BCAD Year 3
- MODULE: Programming 3C
- MODULE CODE: PROG7313
- ASSESSMENT: Portfolio of Evidence (POE) Part 2
- Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
- --------------------------------Project Details----------------------------------
-*/
-
-/*
- --------------------------------Code Attribution----------------------------------
- Title: Basic syntax | Kotlin Documentation
- Author: Kotlin
- Date Published: 06 November 2024
- Date Accessed: 17 April 2025
- Code Version: v21.20
- Availability: https://kotlinlang.org/docs/basic-syntax.html
-  --------------------------------Code Attribution----------------------------------
-*/
-
-// Import necessary Android and Kotlin libraries
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
@@ -32,30 +9,10 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.firstproject.prog7313_budgetbuddy.R
-import com.firstproject.prog7313_budgetbuddy.data.entities.CategoryWithAmount
+import com.firstproject.prog7313_budgetbuddy.data.models.CategoryWithAmount
 import java.text.NumberFormat
 import java.util.Locale
-/*
- --------------------------------Code Attribution----------------------------------
- Title: Create dynamic lists with RecyclerView  |  Views  |  Android Developers
- Author: Android Developers
- Date Published: 2025
- Date Accessed: 18 April 2025
- Code Version: N/A
- Availability: https://developer.android.com/develop/ui/views/layout/recyclerview#next-steps
- --------------------------------Code Attribution----------------------------------
-*/
 
-/*
- --------------------------------Code Attribution----------------------------------
- Title: Adapter  |  API reference  |  Android Developers
- Author: Android Developer
- Date Published: 2019
- Date Accessed: 17 April 2025
- Code Version: v21.20
- Availability: https://developer.android.com/reference/android/widget/Adapter
-  --------------------------------Code Attribution----------------------------------
-*/
 // Adapter for displaying category spending data in a RecyclerView
 class CategorySpendingAdapter(
     // List of category spending data
@@ -86,15 +43,15 @@ class CategorySpendingAdapter(
 
         // Set the background color of the category color view
         try {
-            holder.categoryColorView.setBackgroundColor(Color.parseColor(category.colour))
-            // Also set the progress bar's color programmatically
-            holder.progressBar.progressDrawable.setColorFilter(
-                Color.parseColor(category.colour),
-                android.graphics.PorterDuff.Mode.SRC_IN
-            )
+            val color = Color.parseColor(category.colour)
+            holder.categoryColorView.setBackgroundColor(color)
+
+            // Set the progress bar's color using modern approach
+            holder.progressBar.progressTintList = ColorStateList.valueOf(color)
         } catch (e: IllegalArgumentException) {
             // Use a default color if the color string is invalid
             holder.categoryColorView.setBackgroundColor(Color.GRAY)
+            holder.progressBar.progressTintList = ColorStateList.valueOf(Color.GRAY)
         }
 
         // Set the text views with category data
@@ -102,7 +59,7 @@ class CategorySpendingAdapter(
         holder.amountText.text = currencyFormat.format(category.amount)
         holder.percentageText.text = String.format("%.1f%%", category.percentage * 100)
 
-        /// Set the progress bar to reflect the percentage (scaled to 0-100)
+        // Set the progress bar to reflect the percentage (scaled to 0-100)
         holder.progressBar.progress = (category.percentage * 100).toInt()
     }
 

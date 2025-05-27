@@ -37,7 +37,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.firstproject.prog7313_budgetbuddy.adapters.CategorySpendingAdapter
-import com.firstproject.prog7313_budgetbuddy.data.entities.CategoryWithAmount
+import com.firstproject.prog7313_budgetbuddy.data.models.CategoryWithAmount
 import com.firstproject.prog7313_budgetbuddy.viewmodels.ViewModels
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat

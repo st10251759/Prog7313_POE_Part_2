@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Internet permission for Firestore -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <!-- Declare that the app may use the camera hardware, but it is not required to run the app -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
     <!-- Allows the app to access the device's camera -->
     <uses-permission android:name="android.permission.CAMERA" />
+
     <!-- Permissions to access device features and storage -->
     <!-- Allows the app to read from external storage (images, documents, etc.) -->
     <uses-permission
@@ -17,6 +23,7 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+
     <!-- Application tag contains metadata and components of the app -->
     <application
         android:allowBackup="true"
@@ -28,8 +35,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Prog7313_BudgetBuddy"
         tools:targetApi="31">
-        <!-- Declaration of activities (screens) in the app -->
 
+        <!-- Declaration of activities (screens) in the app -->
         <!-- Activity for setting and viewing budget goals -->
         <activity
             android:name=".BudgetGoalsActivity"
@@ -64,6 +71,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <!-- FileProvider is used to securely share files between apps (e.g., camera images) -->
         <provider
             android:name="androidx.core.content.FileProvider"

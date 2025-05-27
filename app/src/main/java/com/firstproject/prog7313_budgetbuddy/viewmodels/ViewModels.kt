@@ -1,44 +1,10 @@
 package com.firstproject.prog7313_budgetbuddy.viewmodels
-/*
- --------------------------------Project Details----------------------------------
- STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
- STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
- COURSE: BCAD Year 3
- MODULE: Programming 3C
- MODULE CODE: PROG7313
- ASSESSMENT: Portfolio of Evidence (POE) Part 2
- Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
- --------------------------------Project Details----------------------------------
-*/
 
-/*
- --------------------------------Code Attribution----------------------------------
- Title: Save data in a local database using Room  |  App data and files  |  Android Developers
- Author: Android Developer
- Date Published: 2019
- Date Accessed: 17 April 2025
- Code Version: v21.20
- Availability: https://developer.android.com/training/data-storage/room
-  --------------------------------Code Attribution----------------------------------
-*/
-
-/*
- --------------------------------Code Attribution----------------------------------
- Title: ViewModel overview  |  App architecture  |  Android Developers
- Author: Android Developer
- Date Published: 2019
- Date Accessed: 18 April 2025
- Code Version: v21.20
- Availability: https://developer.android.com/topic/libraries/architecture/viewmodel
-  --------------------------------Code Attribution----------------------------------
-*/
-
-// Import necessary Android, Room and Kotlin libraries
 import android.app.Application
 import androidx.lifecycle.*
-import com.firstproject.prog7313_budgetbuddy.BudgetBuddyDatabase
-import com.firstproject.prog7313_budgetbuddy.data.entities.*
-import com.firstproject.prog7313_budgetbuddy.data.repositories.*
+import com.firstproject.prog7313_budgetbuddy.data.models.*
+import com.firstproject.prog7313_budgetbuddy.data.repositories.FirestoreRepository
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -47,11 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
-// ViewModel class for managing UI-related data in a lifecycle-conscious way
 class ViewModels(application: Application) : AndroidViewModel(application) {
 
     // Repository to handle all database operations
-    private val repository: Repositories
+    private val repository = FirestoreRepository()
 
     // Firebase Authentication instance
     private val auth = FirebaseAuth.getInstance()
@@ -64,16 +29,8 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     private val _currentDateRange = MutableLiveData<Pair<Date, Date>>()
     val currentDateRange: LiveData<Pair<Date, Date>> = _currentDateRange
 
-    // Initialize database, repository, authentication state listener, and default date range
+    // Initialize authentication state listener and default date range
     init {
-        val database = BudgetBuddyDatabase.getDatabase(application)
-        repository = Repositories(
-            database.categoryDao(),
-            database.expenseDao(),
-            database.photoDao(),
-            database.budgetGoalDao()
-        )
-
         // Set initial user state
         _currentUser.value = auth.currentUser
 
@@ -210,7 +167,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
 
     // Create a new expense, optionally with a photo
     fun createExpense(
-        categoryId: Int?,
+        categoryId: String?,
         categoryName: String,
         expenseDate: Date,
         startTime: String?,
@@ -221,38 +178,31 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     ) = viewModelScope.launch {
         val currentUserId = getCurrentUserId() ?: return@launch
 
-        // Insert expense
-        val expense = Expense(
-            userId = currentUserId,
-            categoryId = categoryId,
-            category = categoryName,
-            expenseDate = expenseDate,
-            startTime = startTime,
-            endTime = endTime,
-            description = description,
-            totalAmount = amount,
-            photoId = null
-        )
+        try {
+            // Upload photo if provided
+            var photoUrl: String? = null
+            if (!photoPath.isNullOrEmpty()) {
+                photoUrl = repository.uploadPhoto(photoPath, currentUserId)
+            }
 
-        val expenseId = repository.insertExpense(expense)
-
-        // Add photo if provided
-        if (!photoPath.isNullOrEmpty()) {
-            val photo = Photo(
-                expenseId = expenseId.toInt(),
-                filePath = photoPath,
-                uploadedAt = Date()
+            // Create expense
+            val expense = Expense(
+                userId = currentUserId,
+                categoryId = categoryId,
+                category = categoryName,
+                expenseDate = Timestamp(expenseDate),
+                startTime = startTime,
+                endTime = endTime,
+                description = description,
+                totalAmount = amount,
+                photoUrl = photoUrl,
+                photoPath = photoPath
             )
 
-            val photoId = repository.insertPhoto(photo)
-
-            // Update expense with photo ID
-            val updatedExpense = expense.copy(
-                expenseId = expenseId.toInt(),
-                photoId = photoId.toString()
-            )
-
-            repository.updateExpense(updatedExpense)
+            repository.insertExpense(expense)
+        } catch (e: Exception) {
+            // Handle error - you might want to show this to the user
+            android.util.Log.e("ViewModels", "Error creating expense", e)
         }
     }
 
@@ -263,21 +213,11 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
 
     // Delete an expense and its associated photo
     fun deleteExpense(expense: Expense) = viewModelScope.launch {
-        expense.photoId?.let { photoIdStr ->
-            try {
-                val photoId = photoIdStr.toInt()
-                repository.getPhotoById(photoId)?.let { photo ->
-                    repository.deletePhoto(photo)
-                }
-            } catch (e: NumberFormatException) {
-                // Handle invalid photo ID
-            }
-        }
         repository.deleteExpense(expense)
     }
 
     // Get all expenses by category
-    fun getExpensesByCategory(categoryId: Int): LiveData<List<Expense>> {
+    fun getExpensesByCategory(categoryId: String): LiveData<List<Expense>> {
         val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
         return repository.getExpensesByCategory(currentUserId, categoryId)
     }
@@ -301,20 +241,15 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
 
     // ------------------------ Photo Methods ------------------------
 
-    // Get a photo by expense ID
-    suspend fun getPhotoByExpenseId(expenseId: Int): Photo? {
-        return repository.getPhotoByExpenseId(expenseId)
-    }
-
     // Get expenses by period for specific user (used in activities)
     fun getExpensesByPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<Expense>> {
         return repository.getExpensesByPeriod(userId, startDate, endDate)
     }
 
-    // Get photo by ID (used when accessing receipts)
-    suspend fun getPhotoById(photoId: Int): Photo? {
+    // Get expense by ID (for photo access)
+    suspend fun getExpenseById(expenseId: String): Expense? {
         return withContext(Dispatchers.IO) {
-            repository.getPhotoById(photoId)
+            repository.getExpenseById(expenseId)
         }
     }
 
@@ -350,7 +285,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     ): List<CategoryWithAmount> {
         return categories.map { categorySpending ->
             CategoryWithAmount(
-                categoryId = categorySpending.category.categoryId,
+                categoryId = categorySpending.category.id,
                 categoryName = categorySpending.category.categoryName,
                 colour = categorySpending.category.colour,
                 amount = categorySpending.amount,
@@ -369,26 +304,30 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     fun createBudgetGoal(minAmount: Double, maxAmount: Double, startDate: Date, endDate: Date) = viewModelScope.launch {
         val currentUserId = getCurrentUserId() ?: return@launch
 
-        // Check if a budget goal already exists for this period
-        val existingGoal = repository.getBudgetGoalForDate(currentUserId, startDate)
+        try {
+            // Check if a budget goal already exists for this period
+            val existingGoal = repository.getBudgetGoalForDate(currentUserId, startDate)
 
-        if (existingGoal != null) {
-            // Update existing goal
-            val updatedGoal = existingGoal.copy(
-                minGoalAmount = minAmount,
-                maxGoalAmount = maxAmount
-            )
-            repository.updateBudgetGoal(updatedGoal)
-        } else {
-            // Create new goal
-            val budgetGoal = BudgetGoal(
-                userId = currentUserId,
-                minGoalAmount = minAmount,
-                maxGoalAmount = maxAmount,
-                startDate = startDate,
-                endDate = endDate
-            )
-            repository.insertBudgetGoal(budgetGoal)
+            if (existingGoal != null) {
+                // Update existing goal
+                val updatedGoal = existingGoal.copy(
+                    minGoalAmount = minAmount,
+                    maxGoalAmount = maxAmount
+                )
+                repository.updateBudgetGoal(updatedGoal)
+            } else {
+                // Create new goal
+                val budgetGoal = BudgetGoal(
+                    userId = currentUserId,
+                    minGoalAmount = minAmount,
+                    maxGoalAmount = maxAmount,
+                    startDate = Timestamp(startDate),
+                    endDate = Timestamp(endDate)
+                )
+                repository.insertBudgetGoal(budgetGoal)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ViewModels", "Error creating/updating budget goal", e)
         }
     }
 
@@ -436,6 +375,4 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
 
         return result
     }
-
-
 }

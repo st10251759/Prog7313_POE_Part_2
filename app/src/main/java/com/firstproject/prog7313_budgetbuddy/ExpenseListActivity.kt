@@ -1,37 +1,5 @@
 package com.firstproject.prog7313_budgetbuddy
-/*
- --------------------------------Project Details----------------------------------
- STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
- STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
- COURSE: BCAD Year 3
- MODULE: Programming 3C
- MODULE CODE: PROG7313
- ASSESSMENT: Portfolio of Evidence (POE) Part 2
- Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
- --------------------------------Project Details----------------------------------
-*/
 
-/*
- --------------------------------Code Attribution----------------------------------
- Title: Save data in a local database using Room  |  App data and files  |  Android Developers
- Author: Android Developer
- Date Published: 2019
- Date Accessed: 17 April 2025
- Code Version: v21.20
- Availability: https://developer.android.com/training/data-storage/room
-  --------------------------------Code Attribution----------------------------------
-
-  --------------------------------Code Attribution----------------------------------
- Title: Basic syntax | Kotlin Documentation
- Author: Kotlin
- Date Published: 06 November 2024
- Date Accessed: 17 April 2025
- Code Version: v21.20
- Availability: https://kotlinlang.org/docs/basic-syntax.html
-  --------------------------------Code Attribution----------------------------------
-*/
-
-//Imports
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -54,7 +22,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.firstproject.prog7313_budgetbuddy.adapters.ExpenseListAdapter
-import com.firstproject.prog7313_budgetbuddy.data.entities.Expense
+import com.firstproject.prog7313_budgetbuddy.data.models.Expense
 import com.firstproject.prog7313_budgetbuddy.viewmodels.ViewModels
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -63,17 +31,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-
-/*
- --------------------------------Code Attribution----------------------------------
- Title: Adapter  |  API reference  |  Android Developers
- Author: Android Developer
- Date Published: 2019
- Date Accessed: 17 April 2025
- Code Version: v21.20
- Availability: https://developer.android.com/reference/android/widget/Adapter
-  --------------------------------Code Attribution----------------------------------
-*/
 
 // This activity displays a list of expenses for the current user within a selected date range
 class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClickListener {
@@ -222,7 +179,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         etToDate.setText(dateFormatter.format(toDate.time))
     }
 
-    // Fetch expenses from database for the selected date range
+    // Fetch expenses from Firestore for the selected date range
     private fun loadExpenses() {
         val userId = auth.currentUser?.uid
 
@@ -250,99 +207,45 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
 
     // Callback when the "Download Receipt" button is clicked
     override fun onDownloadReceiptClicked(expense: Expense) {
-        expense.photoId?.let { photoIdStr ->
+        // Handle photo URL from Firestore
+        expense.photoUrl?.let { photoUrl ->
             lifecycleScope.launch {
                 try {
-                    // Convert photoId to Int safely
-                    val photoId = photoIdStr.toIntOrNull()
+                    Log.d("ExpenseListActivity", "Attempting to open photo URL: $photoUrl")
 
-                    if (photoId == null) {
-                        Toast.makeText(
-                            this@ExpenseListActivity,
-                            "Invalid receipt ID",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@launch
-                    }
-
-                    // Log the photoId for debugging
-                    Log.d("ExpenseListActivity", "Attempting to retrieve photo with ID: $photoId")
-
-                    // Safely get the photo using the suspend function
-                    val photo = viewModel.getPhotoById(photoId)
-
-                    if (photo == null) {
-                        Log.e("ExpenseListActivity", "No photo found for ID: $photoId")
-                        Toast.makeText(
-                            this@ExpenseListActivity,
-                            "No receipt found for this expense",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@launch
-                    }
-
-                    // Log the file path for debugging
-                    Log.d("ExpenseListActivity", "Photo file path: ${photo.filePath}")
-
-                    val photoFile = File(photo.filePath)
-
-                    // Enhanced file existence check
-                    if (!photoFile.exists()) {
-                        Log.e("ExpenseListActivity", "Photo file does not exist: ${photoFile.absolutePath}")
-                        Toast.makeText(
-                            this@ExpenseListActivity,
-                            "Receipt image file not found",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@launch
-                    }
-
-                    // Check if file exists and is valid
-                    if (!photoFile.isFile) {
-                        Log.e("ExpenseListActivity", "Path is not a file: ${photoFile.absolutePath}")
-                        Toast.makeText(
-                            this@ExpenseListActivity,
-                            "Invalid receipt image",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@launch
-                    }
-
-                    // Create content URI using FileProvider
-                    val photoUri = FileProvider.getUriForFile(
-                        this@ExpenseListActivity,
-                        "${applicationContext.packageName}.fileprovider",
-                        photoFile
-                    )
-
-                    // Create intent to view the image
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(photoUri, "image/*")
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-
-                    // Try multiple ways to view the image
-                    try {
-                        // First, try to start the activity directly
-                        startActivity(intent)
-                    } catch (activityNotFoundException: ActivityNotFoundException) {
-                        // If no activity found, try with chooser
-                        val chooserIntent = Intent.createChooser(
-                            intent,
-                            "Open Receipt with..."
-                        )
-
-                        try {
-                            startActivity(chooserIntent)
-                        } catch (e: Exception) {
-                            // If all else fails, show a message
-                            Log.e("ExpenseListActivity", "Failed to open image", e)
-                            Toast.makeText(
-                                this@ExpenseListActivity,
-                                "Unable to open receipt. No compatible apps found.",
-                                Toast.LENGTH_LONG
-                            ).show()
+                    // For Firebase Storage URLs, we can directly open them or download them
+                    if (photoUrl.startsWith("https://")) {
+                        // Create intent to view the image from URL
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(Uri.parse(photoUrl), "image/*")
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
+
+                        // Try to open the URL directly
+                        try {
+                            startActivity(intent)
+                        } catch (activityNotFoundException: ActivityNotFoundException) {
+                            // If no activity found, try with chooser
+                            val chooserIntent = Intent.createChooser(
+                                intent,
+                                "Open Receipt with..."
+                            )
+
+                            try {
+                                startActivity(chooserIntent)
+                            } catch (e: Exception) {
+                                // If all else fails, show a message
+                                Log.e("ExpenseListActivity", "Failed to open image", e)
+                                Toast.makeText(
+                                    this@ExpenseListActivity,
+                                    "Unable to open receipt. No compatible apps found.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    } else {
+                        // If it's a local file path (for backward compatibility)
+                        handleLocalPhotoFile(expense)
                     }
                 } catch (e: Exception) {
                     // Handle any unexpected errors
@@ -355,7 +258,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
                 }
             }
         } ?: run {
-            // No photo ID attached to expense
+            // No photo URL attached to expense
             Toast.makeText(
                 this,
                 "No receipt available for this expense",
@@ -364,4 +267,78 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.ExpenseClick
         }
     }
 
+    // Handle local photo files (for backward compatibility)
+    private fun handleLocalPhotoFile(expense: Expense) {
+        expense.photoPath?.let { photoPath ->
+            val photoFile = File(photoPath)
+
+            // Enhanced file existence check
+            if (!photoFile.exists()) {
+                Log.e("ExpenseListActivity", "Photo file does not exist: ${photoFile.absolutePath}")
+                Toast.makeText(
+                    this,
+                    "Receipt image file not found",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return
+            }
+
+            // Check if file exists and is valid
+            if (!photoFile.isFile) {
+                Log.e("ExpenseListActivity", "Path is not a file: ${photoFile.absolutePath}")
+                Toast.makeText(
+                    this,
+                    "Invalid receipt image",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return
+            }
+
+            try {
+                // Create content URI using FileProvider
+                val photoUri = FileProvider.getUriForFile(
+                    this,
+                    "${applicationContext.packageName}.fileprovider",
+                    photoFile
+                )
+
+                // Create intent to view the image
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(photoUri, "image/*")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+
+                // Try multiple ways to view the image
+                try {
+                    // First, try to start the activity directly
+                    startActivity(intent)
+                } catch (activityNotFoundException: ActivityNotFoundException) {
+                    // If no activity found, try with chooser
+                    val chooserIntent = Intent.createChooser(
+                        intent,
+                        "Open Receipt with..."
+                    )
+
+                    try {
+                        startActivity(chooserIntent)
+                    } catch (e: Exception) {
+                        // If all else fails, show a message
+                        Log.e("ExpenseListActivity", "Failed to open image", e)
+                        Toast.makeText(
+                            this,
+                            "Unable to open receipt. No compatible apps found.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ExpenseListActivity", "Error creating file URI", e)
+                Toast.makeText(
+                    this,
+                    "Error accessing local receipt file",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 }

@@ -1,30 +1,8 @@
 package com.firstproject.prog7313_budgetbuddy
-/*
- --------------------------------Project Details----------------------------------
- STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
- STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
- COURSE: BCAD Year 3
- MODULE: Programming 3C
- MODULE CODE: PROG7313
- ASSESSMENT: Portfolio of Evidence (POE) Part 2
- Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
- --------------------------------Project Details----------------------------------
-*/
 
-/*
- --------------------------------Code Attribution----------------------------------
- Title: Basic syntax | Kotlin Documentation
- Author: Kotlin
- Date Published: 06 November 2024
- Date Accessed: 17 April 2025
- Code Version: v21.20
- Availability: https://kotlinlang.org/docs/basic-syntax.html
-  --------------------------------Code Attribution----------------------------------
-*/
-
-// Import necessary Android, Firebase and Kotlin libraries
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
@@ -37,9 +15,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.firstproject.prog7313_budgetbuddy.adapters.HomeCategoryAdapter
-import com.firstproject.prog7313_budgetbuddy.data.entities.BudgetGoal
+import com.firstproject.prog7313_budgetbuddy.data.models.BudgetGoal
 import com.firstproject.prog7313_budgetbuddy.viewmodels.ViewModels
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import java.text.NumberFormat
 import java.util.Calendar
 import java.util.Locale
@@ -80,6 +60,10 @@ class MainActivity : AppCompatActivity() {
     // Currency formatter for formatting amounts into South African Rand (ZAR)
     private val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
 
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge() // Enabling edge-to-edge layout
@@ -90,13 +74,23 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
-        }
+            // In MainActivity onCreate, before any Firestore operations:
 
+        }
+// In MainActivity onCreate, before any Firestore operations:
+        FirebaseFirestore.getInstance().apply {
+            firestoreSettings = FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build()
+        }
         // Initialize Firebase Auth for user authentication
         auth = FirebaseAuth.getInstance()
 
+        Log.d(TAG, "Current user: ${auth.currentUser?.uid}")
+
         // If the user is not logged in, redirect to the LoginActivity
         if (auth.currentUser == null) {
+            Log.w(TAG, "User not authenticated, redirecting to login")
             startActivity(Intent(this, LoginActivity::class.java))
             finish() // Close the current activity
             return
@@ -113,7 +107,24 @@ class MainActivity : AppCompatActivity() {
         loadBudgetData()
         loadCategorySpending()
     }
+    private fun testFirestoreConnection() {
+        val userId = auth.currentUser?.uid ?: return
 
+        // Test direct Firestore query
+        FirebaseFirestore.getInstance()
+            .collection("expenses")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { documents ->
+                Log.d(TAG, "Direct Firestore query success: ${documents.size()} documents")
+                for (doc in documents) {
+                    Log.d(TAG, "Document: ${doc.data}")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Direct Firestore query failed", e)
+            }
+    }
     // Initialize the UI components for the main activity
     private fun initializeUI() {
         btnAddExpense = findViewById(R.id.btnAddExpense)
@@ -165,18 +176,27 @@ class MainActivity : AppCompatActivity() {
     private fun loadBudgetData() {
         val userId = auth.currentUser?.uid ?: return // Ensure a valid user is logged in
 
+        Log.d(TAG, "Loading budget data for user: $userId")
+
         // Observe the current budget goal for the user
         viewModel.getCurrentBudgetGoal(userId).observe(this) { budgetGoal ->
+            Log.d(TAG, "Budget goal received: $budgetGoal")
+
             if (budgetGoal == null) {
+                Log.d(TAG, "No budget goal set, displaying default values")
                 // No budget goal set, display default values
                 updateBudgetDisplay(null, 0.0)
                 updateSpendingDisplay(0.0, null)
                 return@observe
             }
+
+            Log.d(TAG, "Budget goal found - Min: ${budgetGoal.minGoalAmount}, Max: ${budgetGoal.maxGoalAmount}")
+
             // Load total expenses for the period
             viewModel.getTotalExpensesForPeriod(userId, startDate.time, endDate.time)
                 .observe(this) { totalSpent ->
                     val safeTotal = totalSpent ?: 0.0
+                    Log.d(TAG, "Total expenses received: $safeTotal")
                     updateBudgetDisplay(budgetGoal, safeTotal)
                     updateSpendingDisplay(safeTotal, budgetGoal)
                 }
@@ -186,15 +206,26 @@ class MainActivity : AppCompatActivity() {
     // Load the category-wise spending data for the user
     private fun loadCategorySpending() {
         val userId = auth.currentUser?.uid ?: return
+
+        Log.d(TAG, "Loading category spending for user: $userId")
+
         // Observe the category spending data for the period
         viewModel.getCategorySpendingForPeriod(userId, startDate.time, endDate.time)
             .observe(this) { categorySpending ->
+                Log.d(TAG, "Category spending received: ${categorySpending?.size ?: 0} categories")
+
+                categorySpending?.forEach { category ->
+                    Log.d(TAG, "Category: ${category.categoryName}, Amount: ${category.amount}")
+                }
+
                 adapter.updateCategories(categorySpending ?: emptyList())
             }
     }
 
     // Update the budget display based on the user's budget goal and total spent
     private fun updateBudgetDisplay(budgetGoal: BudgetGoal?, totalSpent: Double) {
+        Log.d(TAG, "Updating budget display - Goal: $budgetGoal, Spent: $totalSpent")
+
         if (budgetGoal == null) {
             // Default values when no budget goal is set
             tvTotalBudget.text = "R0.00"
@@ -253,18 +284,18 @@ class MainActivity : AppCompatActivity() {
         // Update the selected period
         when(periodType) {
             PeriodType.MONTHLY -> {
-                btnMonthly.background = getDrawable(R.drawable.period_toggle_selected);
-                btnMonthly.setTextColor(getColor(android.R.color.white));
+                btnMonthly.background = getDrawable(R.drawable.period_toggle_selected)
+                btnMonthly.setTextColor(getColor(android.R.color.white))
                 setMonthlyDateRange()
             }
             PeriodType.WEEKLY  -> {
-                btnWeekly.background  = getDrawable(R.drawable.period_toggle_selected);
-                btnWeekly.setTextColor(getColor(android.R.color.white));
+                btnWeekly.background  = getDrawable(R.drawable.period_toggle_selected)
+                btnWeekly.setTextColor(getColor(android.R.color.white))
                 setWeeklyDateRange()
             }
             PeriodType.DAILY   -> {
-                btnDaily.background   = getDrawable(R.drawable.period_toggle_selected);
-                btnDaily.setTextColor(getColor(android.R.color.white));
+                btnDaily.background   = getDrawable(R.drawable.period_toggle_selected)
+                btnDaily.setTextColor(getColor(android.R.color.white))
                 setDailyDateRange()
             }
         }
@@ -300,10 +331,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "onResume - Reloading data")
         loadBudgetData()
         loadCategorySpending()
     }
 
-    // Enum for selecting the data period enum class PeriodType { MONTHLY, WEEKLY, DAILY }
+    // Enum for selecting the data period
     enum class PeriodType { MONTHLY, WEEKLY, DAILY }
-}
+    }

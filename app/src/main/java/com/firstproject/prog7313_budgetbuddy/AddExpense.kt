@@ -1,29 +1,5 @@
 package com.firstproject.prog7313_budgetbuddy
 
-/*
- --------------------------------Project Details----------------------------------
- STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
- STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
- COURSE: BCAD Year 3
- MODULE: Programming 3C
- MODULE CODE: PROG7313
- ASSESSMENT: Portfolio of Evidence (POE) Part 2
- Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
- --------------------------------Project Details----------------------------------
-*/
-
-/*
- --------------------------------Code Attribution----------------------------------
- Title: Basic syntax | Kotlin Documentation
- Author: Kotlin
- Date Published: 06 November 2024
- Date Accessed: 17 April 2025
- Code Version: v21.20
- Availability: https://kotlinlang.org/docs/basic-syntax.html
-  --------------------------------Code Attribution----------------------------------
-*/
-
-// Import necessary Android and Kotlin libraries
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Intent
@@ -35,7 +11,7 @@ import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import android.util.Log  //import for logging
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -44,8 +20,7 @@ import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import com.firstproject.prog7313_budgetbuddy.data.entities.Category
-import com.firstproject.prog7313_budgetbuddy.data.entities.Expense
+import com.firstproject.prog7313_budgetbuddy.data.models.Category
 import com.firstproject.prog7313_budgetbuddy.viewmodels.ViewModels
 import com.google.firebase.auth.FirebaseAuth
 import java.io.File
@@ -58,7 +33,7 @@ class AddExpenseActivity : AppCompatActivity() {
     private lateinit var viewModel: ViewModels
     private lateinit var auth: FirebaseAuth
 
-    // Variables forUI Components
+    // Variables for UI Components
     private lateinit var tvTotalAmount: TextView
     private lateinit var etDate: EditText
     private lateinit var categorySpinner: Spinner
@@ -78,7 +53,7 @@ class AddExpenseActivity : AppCompatActivity() {
     // Variables for Expense data
     private var currentAmount = "0.00"
     private var selectedDate = Calendar.getInstance()
-    private var selectedCategoryId: Int? = null
+    private var selectedCategoryId: String? = null
     private var selectedCategoryName: String = ""
     private var categories = listOf<Category>()
     private var photoUri: Uri? = null
@@ -96,16 +71,6 @@ class AddExpenseActivity : AppCompatActivity() {
         }
     }
 
-    /*
-       --------------------------------Code Attribution----------------------------------
-        Title: Data and file storage overview  |  App data and files  |  Android Developers
-        Author: Android Developers
-        Date Published: 2019
-        Date Accessed: 17 April 2025
-        Code Version: v21.20
-        Availability: https://developer.android.com/training/data-storage
-       --------------------------------Code Attribution----------------------------------
-    */
     // Launcher for picking an image from the gallery
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -132,16 +97,6 @@ class AddExpenseActivity : AppCompatActivity() {
             insets
         }
 
-        /*
-       --------------------------------Code Attribution----------------------------------
-        Title: Get Started with Firebase Authentication on Android  |  Firebase
-        Author: Firebase
-        Date Published: 2019
-        Date Accessed: 15 April 2025
-        Code Version: N/A
-        Availability: https://firebase.google.com/docs/auth/android/start
-       --------------------------------Code Attribution----------------------------------
-        */
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
@@ -186,7 +141,6 @@ class AddExpenseActivity : AppCompatActivity() {
 
         //Set the background color to grey in backend to override the layout
         btnToday.setBackgroundColor(Color.parseColor("#D3D3D3"))
-
 
         // Set default date to today
         updateAmountDisplay()
@@ -329,17 +283,6 @@ class AddExpenseActivity : AppCompatActivity() {
             val categoryNames = categoryList.map { it.categoryName }
 
             // Create a custom spinner adapter with padded items for a cleaner UI
-            /*
-                --------------------------------Code Attribution----------------------------------
-                Title: Add spinners to your app  |  Views  |  Android Developers
-                Author: Android Developers
-                Date Published: 2019
-                Date Accessed: 17 April 2025
-                Code Version: v21.20
-                Availability: https://developer.android.com/develop/ui/views/components/spinner
-                --------------------------------Code Attribution----------------------------------
-            */
-
             val adapter = object : ArrayAdapter<String>(
                 this,
                 android.R.layout.simple_spinner_item,
@@ -384,7 +327,7 @@ class AddExpenseActivity : AppCompatActivity() {
                 ) {
                     // If the selection is valid, store the category ID and name
                     if (position >= 0 && position < categories.size) {
-                        selectedCategoryId = categories[position].categoryId
+                        selectedCategoryId = categories[position].id
                         selectedCategoryName = categories[position].categoryName
                     }
                 }
@@ -510,16 +453,6 @@ class AddExpenseActivity : AppCompatActivity() {
             .show()
     }
 
-    /*
-       --------------------------------Code Attribution----------------------------------
-        Title: Data and file storage overview  |  App data and files  |  Android Developers
-        Author: Android Developers
-        Date Published: 2019
-        Date Accessed: 17 April 2025
-        Code Version: v21.20
-        Availability: https://developer.android.com/training/data-storage
-       --------------------------------Code Attribution----------------------------------
-    */
     // Opens camera to take a photo and saves the image URI
     private fun takePhoto() {
         val photoFile = createImageFile() // Create temporary file for the image
@@ -578,7 +511,7 @@ class AddExpenseActivity : AppCompatActivity() {
         photoUri?.let {
             ivReceiptPhoto.setImageURI(it)   // Show image in ImageView
             ivReceiptPhoto.visibility = View.VISIBLE
-            btnAddPhoto.visibility = View.GONE    // Show image in ImageView
+            btnAddPhoto.visibility = View.GONE    // Hide the add photo button
         }
     }
 
@@ -614,19 +547,8 @@ class AddExpenseActivity : AppCompatActivity() {
         }
     }
 
-    /*
-     --------------------------------Code Attribution----------------------------------
-     Title: Log  |  API reference  |  Android Developers
-     Author: Android Developers
-     Date Published: 2019
-     Date Accessed: 24 April 2024
-     Code Version: v21.20
-     Availability: https://developer.android.com/reference/android/util/Log
-      --------------------------------Code Attribution----------------------------------
-    */
-
-    // This function gathers all user inputs and saves a new expense entry to the database.
-// It includes validation checks, user feedback via Toasts, and logs important steps using Android's Log utility.
+    // This function gathers all user inputs and saves a new expense entry to Firestore.
+    // It includes validation checks, user feedback via Toasts, and logs important steps using Android's Log utility.
     private fun saveExpense() {
 
         // Tag used for logging from this Activity. It helps filter log messages related to expense creation.
@@ -681,21 +603,8 @@ class AddExpenseActivity : AppCompatActivity() {
         // This is useful for debugging and tracking the expense being created.
         Log.i(TAG, "Creating new expense with amount: $amount, description: $description, category: $selectedCategoryName")
 
-        // Create the Expense data object with all necessary fields.
-        val expense = Expense(
-            userId = userId,
-            categoryId = selectedCategoryId,
-            category = selectedCategoryName,
-            expenseDate = selectedDate.time,
-            startTime = null,  // Not required in this version of the UI
-            endTime = null,    // Not required in this version of the UI
-            description = description,
-            totalAmount = amount,
-            photoId = null // Optional field, may be populated later if a receipt photo is attached
-        )
-
-        //  Instantiate the expense using the ViewModel.
-        // All relevant fields are passed to ensure the record is saved completely.
+        // Create the expense using the ViewModel.
+        // All relevant fields are passed to ensure the record is saved completely to Firestore.
         viewModel.createExpense(
             categoryId = selectedCategoryId,
             categoryName = selectedCategoryName,
@@ -707,13 +616,11 @@ class AddExpenseActivity : AppCompatActivity() {
             photoPath = photoFilePath  // Optional field for an image receipt
         )
 
-        //  Log that the expense was successfully saved.
-        // Logging the complete expense object helps with post-mortem analysis or debugging.
+        // Log that the expense was successfully saved.
         Log.d(TAG, "Expense saved successfully!")
 
-        // Step 10: Notify the user that the save was successful and close the screen.
+        // Notify the user that the save was successful and close the screen.
         Toast.makeText(this, "Expense saved successfully", Toast.LENGTH_SHORT).show()
         finish()
     }
-
 }
