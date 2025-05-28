@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Regular mode colors -->
+    <!-- Light mode colors -->
     <color name="celadon">#74D3AE</color>
-    <color name="asparagus">#678D58</color>
-    <color name="olivine">#A6C48A</color>
-    <color name="champagne">#F6E7CB</color>
-    <color name="coral_pink">#DD9787</color>
+    <color name="asparagus">#7BA05B</color>
+    <color name="olivine">#9BC53D</color>
+    <color name="champagne">#F7E7CE</color>
+    <color name="coral_pink">#F08080</color>
 
-    <!-- Background colors for regular mode -->
+    <!-- Background colors for light mode -->
     <color name="background_primary">#FFFFFF</color>
     <color name="background_secondary">#F5F5F5</color>
     <color name="background_card">#FFFFFF</color>
 
-    <!-- Text colors for regular mode -->
-    <color name="text_primary">#000000</color>
-    <color name="text_secondary">#333333</color>
-    <color name="text_tertiary">#666666</color>
+    <!-- Text colors for light mode -->
+    <color name="text_primary">#202020</color>
+    <color name="text_secondary">#808080</color>
+    <color name="text_tertiary">#AAAAAA</color>
 
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Input field specific colors for light mode -->
+    <color name="input_text_color">#202020</color>
+    <color name="input_hint_color">#707070</color>
+    <color name="input_background">#FFFFFF</color>
+
+    <!-- Accent colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 </resources>

@@ -146,6 +146,8 @@ class AddExpenseActivity  : BaseActivity() {
         btnToday.setBackgroundColor(Color.parseColor("#D3D3D3"))
         btnThemeToggle = findViewById(R.id.btnThemeToggle)
         setupThemeToggle(btnThemeToggle)
+
+
         // Set default date to today
         updateAmountDisplay()
         updateDateDisplay()
@@ -262,42 +264,33 @@ class AddExpenseActivity  : BaseActivity() {
 
     // Loads all available expense categories from the ViewModel and sets up the spinner dropdown
     private fun loadCategories() {
-        // Observe LiveData from the ViewModel to get the list of all categories
         viewModel.getAllCategories().observe(this) { categoryList ->
             categories = categoryList
 
-            // If no categories are returned, show a placeholder spinner and a Toast message
             if (categoryList.isEmpty()) {
-                // Show default text in spinner
                 val noCategoriesAdapter = ArrayAdapter(
                     this,
                     android.R.layout.simple_spinner_item,
                     listOf("No categories available")
                 )
                 noCategoriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                // Apply adapter to the spinner
                 categorySpinner.adapter = noCategoriesAdapter
-
-                // Validation to Notify the user to create a category before adding an expense
                 Toast.makeText(this, "Please create a category first", Toast.LENGTH_SHORT).show()
-                // Exit the observer early since there's nothing to display
                 return@observe
             }
-            // Extract just the category names for the spinner
+
             val categoryNames = categoryList.map { it.categoryName }
 
-            // Create a custom spinner adapter with padded items for a cleaner UI
             val adapter = object : ArrayAdapter<String>(
                 this,
                 android.R.layout.simple_spinner_item,
                 categoryNames
             ) {
-                // Customize the main view shown in the spinner
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val view = super.getView(position, convertView, parent)
                     (view as TextView).apply {
                         setPadding(16, 16, 16, 16)
-                        // Set the visible text in the spinner for each item
+                        setTextColor(Color.BLACK) // <-- SIMPLEST WAY TO SET TEXT COLOR
                         text = if (position >= 0 && position < categoryNames.size) {
                             categoryNames[position]
                         } else {
@@ -307,36 +300,27 @@ class AddExpenseActivity  : BaseActivity() {
                     return view
                 }
 
-                // Customize the view shown in the dropdown list
                 override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val view = super.getDropDownView(position, convertView, parent)
                     (view as TextView).apply {
                         setPadding(16, 16, 16, 16)
+                        setTextColor(Color.BLACK) // <-- SIMPLEST WAY TO SET TEXT COLOR
                     }
                     return view
                 }
             }
 
-            // Set dropdown layout style and apply the adapter to the spinner
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             categorySpinner.adapter = adapter
 
-            // Handle selection events when the user picks a category from the dropdown
             categorySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    // If the selection is valid, store the category ID and name
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     if (position >= 0 && position < categories.size) {
                         selectedCategoryId = categories[position].id
                         selectedCategoryName = categories[position].categoryName
                     }
                 }
 
-                // If no selection is made, clear the selected values
                 override fun onNothingSelected(parent: AdapterView<*>?) {
                     selectedCategoryId = null
                     selectedCategoryName = ""
@@ -344,6 +328,7 @@ class AddExpenseActivity  : BaseActivity() {
             }
         }
     }
+
 
     // Opens a date picker dialog to allow the user to choose a date for the expense
     private fun showDatePicker() {

@@ -52,8 +52,8 @@
         android:hint="e.g. Groceries, Transport, Entertainment"
         android:inputType="textCapSentences"
         android:padding="16dp"
-        android:textColorHint="#AAAAAA"
-        android:textColor="#202020"
+        android:textColorHint="@color/input_hint_color"
+        android:textColor="@color/input_text_color"
         android:layout_marginBottom="24dp"/>
 
     <TextView
@@ -191,7 +191,7 @@
             android:layout_marginEnd="16dp"
             android:text="Cancel"
             android:textAllCaps="false"
-            android:textColor="#909090" />
+            android:textColor="@android:color/white" />
 
         <Button
             android:id="@+id/btnSaveCategory"

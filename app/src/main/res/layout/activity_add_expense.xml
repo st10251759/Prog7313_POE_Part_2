@@ -61,6 +61,7 @@
         android:layout_marginBottom="16dp"
         app:cardCornerRadius="20dp"
         app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/input_background"
         app:layout_constraintTop_toBottomOf="@id/headerLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -313,8 +314,8 @@
                         android:inputType="none"
                         android:focusable="false"
                         android:padding="16dp"
-                        android:textColorHint="#AAAAAA"
-                        android:textColor="#202020" />
+                        android:textColorHint="@color/input_hint_color"
+                        android:textColor="@color/input_text_color" />
 
                     <ImageView
                         android:layout_width="24dp"
@@ -389,8 +390,8 @@
                     android:hint="Ex: Dinner with friends"
                     android:inputType="textCapSentences"
                     android:padding="16dp"
-                    android:textColorHint="#AAAAAA"
-                    android:textColor="#202020"
+                    android:textColorHint="@color/input_hint_color"
+                    android:textColor="@color/input_text_color"
                     android:layout_marginBottom="24dp"/>
 
                 <!-- Receipt Photo -->
