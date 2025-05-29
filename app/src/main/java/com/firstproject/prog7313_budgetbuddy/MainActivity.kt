@@ -185,6 +185,11 @@ class MainActivity : BaseActivity() {
         findViewById<View>(R.id.navCategorySpending).setOnClickListener {
             startActivity(Intent(this, CategorySpendingActivity::class.java))
         }
+
+        findViewById<Button>(R.id.btnGamification).setOnClickListener {
+            startActivity(Intent(this, GamificationActivity::class.java))
+        }
+
         findViewById<View>(R.id.navBudgetGoals).setOnClickListener {
             startActivity(Intent(this, BudgetGoalsActivity::class.java))
         }

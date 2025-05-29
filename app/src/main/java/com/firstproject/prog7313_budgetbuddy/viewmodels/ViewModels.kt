@@ -165,7 +165,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         return repository.getCurrentBudgetGoal(userId)
     }
 
-    // Create a new expense, optionally with a photo
+    // **MAIN METHOD**: Modified createExpense method to include streak update
     fun createExpense(
         categoryId: String?,
         categoryName: String,
@@ -179,9 +179,12 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         val currentUserId = getCurrentUserId() ?: return@launch
 
         try {
+            android.util.Log.d("ViewModels", "Creating expense for user: $currentUserId")
+
             // Upload photo if provided
             var photoUrl: String? = null
             if (!photoPath.isNullOrEmpty()) {
+                android.util.Log.d("ViewModels", "Uploading photo: $photoPath")
                 photoUrl = repository.uploadPhoto(photoPath, currentUserId)
             }
 
@@ -199,9 +202,14 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
                 photoPath = photoPath
             )
 
+            android.util.Log.d("ViewModels", "Inserting expense into Firestore")
             repository.insertExpense(expense)
+
+            // **CRITICAL**: Update user streak after successful expense creation
+            android.util.Log.d("ViewModels", "Updating user streak after expense log")
+            updateStreakOnExpenseLog()
+
         } catch (e: Exception) {
-            // Handle error - you might want to show this to the user
             android.util.Log.e("ViewModels", "Error creating expense", e)
         }
     }
@@ -237,6 +245,39 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     // Delete budget goal
     fun deleteBudgetGoal(budgetGoal: BudgetGoal) = viewModelScope.launch {
         repository.deleteBudgetGoal(budgetGoal)
+    }
+
+    // ------------------------ Gamification Methods ------------------------
+
+    // Get user streak data
+    fun getUserStreak(): LiveData<UserStreak?> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(null)
+        return repository.observeUserStreak(currentUserId)
+    }
+
+    // Check if user has logged expense today
+    suspend fun hasLoggedExpenseToday(): Boolean {
+        val currentUserId = getCurrentUserId() ?: return false
+        return repository.hasLoggedExpenseToday(currentUserId)
+    }
+
+    // **CRITICAL METHOD**: Update streak when expense is created
+    private suspend fun updateStreakOnExpenseLog() {
+        val currentUserId = getCurrentUserId() ?: return
+        android.util.Log.d("ViewModels", "Calling repository.updateUserStreakOnExpenseLog for user: $currentUserId")
+        repository.updateUserStreakOnExpenseLog(currentUserId)
+    }
+
+    // Get all available badges
+    fun getAllBadges(): List<Badge> {
+        return Badge.getAllBadges()
+    }
+
+    // Initialize user streak if needed
+    fun initializeUserStreak() = viewModelScope.launch {
+        val currentUserId = getCurrentUserId() ?: return@launch
+        android.util.Log.d("ViewModels", "Initializing user streak for: $currentUserId")
+        repository.getUserStreak(currentUserId)
     }
 
     // ------------------------ Photo Methods ------------------------

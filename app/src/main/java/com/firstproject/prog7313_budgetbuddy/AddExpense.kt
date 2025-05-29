@@ -20,21 +20,22 @@ import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import com.firstproject.prog7313_budgetbuddy.data.models.Category
+import com.firstproject.prog7313_budgetbuddy.data.models.Category  // Import the Firestore Category model
 import com.firstproject.prog7313_budgetbuddy.viewmodels.ViewModels
 import com.google.firebase.auth.FirebaseAuth
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AddExpenseActivity  : BaseActivity() {
-
+class AddExpenseActivity : BaseActivity() {
 
     // Declare variables ViewModel and Firebase authentication
     private lateinit var viewModel: ViewModels
     private lateinit var auth: FirebaseAuth
+
     // Add this variable to your existing UI components
     private lateinit var btnThemeToggle: ImageButton
+
     // Variables for UI Components
     private lateinit var tvTotalAmount: TextView
     private lateinit var etDate: EditText
@@ -52,12 +53,12 @@ class AddExpenseActivity  : BaseActivity() {
     private lateinit var btnDot: Button
     private lateinit var btnDelete: Button
 
-    // Variables for Expense data
+    // Variables for Expense data - Updated for Firestore
     private var currentAmount = "0.00"
     private var selectedDate = Calendar.getInstance()
-    private var selectedCategoryId: String? = null
+    private var selectedCategoryId: String? = null  // Changed from Int? to String?
     private var selectedCategoryName: String = ""
-    private var categories = listOf<Category>()
+    private var categories = listOf<Category>()  // This now uses the Firestore Category model
     private var photoUri: Uri? = null
     private var photoFilePath: String? = null
 
@@ -144,9 +145,7 @@ class AddExpenseActivity  : BaseActivity() {
 
         //Set the background color to grey in backend to override the layout
         btnToday.setBackgroundColor(Color.parseColor("#D3D3D3"))
-        btnThemeToggle = findViewById(R.id.btnThemeToggle)
         setupThemeToggle(btnThemeToggle)
-
 
         // Set default date to today
         updateAmountDisplay()
@@ -290,7 +289,7 @@ class AddExpenseActivity  : BaseActivity() {
                     val view = super.getView(position, convertView, parent)
                     (view as TextView).apply {
                         setPadding(16, 16, 16, 16)
-                        setTextColor(Color.BLACK) // <-- SIMPLEST WAY TO SET TEXT COLOR
+                        setTextColor(Color.BLACK)
                         text = if (position >= 0 && position < categoryNames.size) {
                             categoryNames[position]
                         } else {
@@ -304,7 +303,7 @@ class AddExpenseActivity  : BaseActivity() {
                     val view = super.getDropDownView(position, convertView, parent)
                     (view as TextView).apply {
                         setPadding(16, 16, 16, 16)
-                        setTextColor(Color.BLACK) // <-- SIMPLEST WAY TO SET TEXT COLOR
+                        setTextColor(Color.BLACK)
                     }
                     return view
                 }
@@ -316,7 +315,7 @@ class AddExpenseActivity  : BaseActivity() {
             categorySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     if (position >= 0 && position < categories.size) {
-                        selectedCategoryId = categories[position].id
+                        selectedCategoryId = categories[position].id  // Now using String ID
                         selectedCategoryName = categories[position].categoryName
                     }
                 }
@@ -328,7 +327,6 @@ class AddExpenseActivity  : BaseActivity() {
             }
         }
     }
-
 
     // Opens a date picker dialog to allow the user to choose a date for the expense
     private fun showDatePicker() {
@@ -355,63 +353,50 @@ class AddExpenseActivity  : BaseActivity() {
 
     // Function to show a dialog allowing users to add a new category
     private fun showAddCategoryDialog() {
-        // 1) Inflate the layout for the dialog from XML
-        // Initialize references to UI components within the dialog
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_category, null)
-        val etCategoryName    = dialogView.findViewById<EditText>(R.id.etCategoryName)           // Input for category name
-        val rg1               = dialogView.findViewById<RadioGroup>(R.id.colorOptions)           // First row of color choices
-        val rg2               = dialogView.findViewById<RadioGroup>(R.id.colorOptionsRow2)       // Second row of color choices
-        val btnSave           = dialogView.findViewById<Button>(R.id.btnSaveCategory)            // Button to save the new category
-        val btnCancel         = dialogView.findViewById<Button>(R.id.btnCancelCategory)          // Button to cancel and close the dialog
-        val btnBackCategory   = dialogView.findViewById<ImageView>(R.id.btnBackCategory)          // Image button to go back (closes dialog)
+        val etCategoryName = dialogView.findViewById<EditText>(R.id.etCategoryName)
+        val rg1 = dialogView.findViewById<RadioGroup>(R.id.colorOptions)
+        val rg2 = dialogView.findViewById<RadioGroup>(R.id.colorOptionsRow2)
+        val btnSave = dialogView.findViewById<Button>(R.id.btnSaveCategory)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelCategory)
+        val btnBackCategory = dialogView.findViewById<ImageView>(R.id.btnBackCategory)
 
-        // 2) Make sure the two radio groups are mutually exclusive
-        // If a button in rg1 is checked, clear rg2
+        // Make sure the two radio groups are mutually exclusive
         rg1.setOnCheckedChangeListener { _, checkedId ->
             if (checkedId != -1) rg2.clearCheck()
         }
-        // If a button in rg2 is checked, clear rg1
         rg2.setOnCheckedChangeListener { _, checkedId ->
             if (checkedId != -1) rg1.clearCheck()
         }
 
-        // 3) Build and configure the dialog
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
         dialog.setCancelable(true)
 
-        // 4) Logic for when the Save button is clicked
         btnSave.setOnClickListener {
-            // Get and trim category name
             val name = etCategoryName.text.toString().trim()
             if (name.isEmpty()) {
-                // Show error if category name is blank
                 Toast.makeText(this, "Category name cannot be empty", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Determine which color was selected (from either group)
             val chosenId = rg1.checkedRadioButtonId.takeIf { it != -1 }
                 ?: rg2.checkedRadioButtonId
-            // Extract the color value using the tag attribute from the selected radio button
             val colorHex = if (chosenId != -1) {
                 (dialogView.findViewById<RadioButton>(chosenId).tag as? String)
-                    ?: "#74D3AE"  // Default fallback color
+                    ?: "#74D3AE"
             } else {
-                "#74D3AE"      // Default if no color selected
+                "#74D3AE"
             }
 
-            // Call function to save category and close dialog
             saveCategory(name, colorHex)
             dialog.dismiss()
         }
 
-        // 5) Cancel and back buttons simply close the dialog
         btnCancel.setOnClickListener { dialog.dismiss() }
         btnBackCategory.setOnClickListener { dialog.dismiss() }
 
-        // Display the dialog to the user
         dialog.show()
     }
 
@@ -433,9 +418,7 @@ class AddExpenseActivity  : BaseActivity() {
             .setTitle("Add Receipt Photo")
             .setItems(options) { _, which ->
                 when (which) {
-                    // User chose to take a photo
                     0 -> takePhoto()
-                    // User chose from gallery
                     1 -> pickImageFromGallery()
                 }
             }
@@ -444,7 +427,7 @@ class AddExpenseActivity  : BaseActivity() {
 
     // Opens camera to take a photo and saves the image URI
     private fun takePhoto() {
-        val photoFile = createImageFile() // Create temporary file for the image
+        val photoFile = createImageFile()
         photoFile?.let {
             photoUri = FileProvider.getUriForFile(
                 this,
@@ -454,14 +437,14 @@ class AddExpenseActivity  : BaseActivity() {
             photoFilePath = it.absolutePath
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-            takePictureLauncher.launch(takePictureIntent)  // Launch camera
+            takePictureLauncher.launch(takePictureIntent)
         }
     }
 
     // Opens gallery to choose an image
     private fun pickImageFromGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pickImageLauncher.launch(intent)  // Launch gallery
+        pickImageLauncher.launch(intent)
     }
 
     // Creates a temporary image file in the app's external picture directory
@@ -469,9 +452,9 @@ class AddExpenseActivity  : BaseActivity() {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
-            "RECEIPT_${timeStamp}_",  // Prefix for filename
-            ".jpg",  // File extension
-            storageDir // Save location
+            "RECEIPT_${timeStamp}_",
+            ".jpg",
+            storageDir
         )
     }
 
@@ -484,7 +467,7 @@ class AddExpenseActivity  : BaseActivity() {
         try {
             contentResolver.openInputStream(uri)?.use { inputStream ->
                 destFile.outputStream().use { outputStream ->
-                    inputStream.copyTo(outputStream)  // Copy content from URI to file
+                    inputStream.copyTo(outputStream)
                 }
             }
             return destFile.absolutePath
@@ -498,9 +481,9 @@ class AddExpenseActivity  : BaseActivity() {
     // Displays the selected/taken photo in the UI
     private fun displayPhoto() {
         photoUri?.let {
-            ivReceiptPhoto.setImageURI(it)   // Show image in ImageView
+            ivReceiptPhoto.setImageURI(it)
             ivReceiptPhoto.visibility = View.VISIBLE
-            btnAddPhoto.visibility = View.GONE    // Hide the add photo button
+            btnAddPhoto.visibility = View.GONE
         }
     }
 
@@ -508,108 +491,72 @@ class AddExpenseActivity  : BaseActivity() {
         etDate.setText(dateFormatter.format(selectedDate.time))
     }
 
-    // Updates the date field using the selected date and formatter
-    private fun formatAndDisplayAmount() {
-        // Parse to double to format correctly
-        try {
-            // Special handling for amounts ending with decimal point
-            val amount = if (currentAmount.endsWith(".")) {
-                // Preserve the decimal point for display
-                tvTotalAmount.text = currentAmount
-                return
-            } else {
-                currentAmount.toDouble()
-            }
-
-            // Format with two decimal places
-            val formattedAmount = String.format(Locale.getDefault(), "%.2f", amount)
-            tvTotalAmount.text = formattedAmount
-
-            // Update the current amount but only if it doesn't end with a decimal point
-            if (!currentAmount.endsWith(".")) {
-                currentAmount = formattedAmount
-            }
-        } catch (e: NumberFormatException) {
-            // Handle formatting error
-            tvTotalAmount.text = "0.00"
-            currentAmount = "0.00"
-        }
-    }
-
     // This function gathers all user inputs and saves a new expense entry to Firestore.
-    // It includes validation checks, user feedback via Toasts, and logs important steps using Android's Log utility.
+    // It includes validation checks, user feedback via Toasts, and logs important steps.
+    // MOST IMPORTANT: This now calls the Firestore-based createExpense method that includes gamification
     private fun saveExpense() {
-
-        // Tag used for logging from this Activity. It helps filter log messages related to expense creation.
         val TAG = "AddExpenseActivity"
 
-        // Check if the user is authenticated.
-        // If not, show a message and exit early. Logging a warning because this is a user-level issue that shouldn't normally happen.
+        // Check if the user is authenticated
         val userId = auth.currentUser?.uid ?: run {
-            Log.w(TAG, "User not authenticated") // Warn about the missing user authentication.
+            Log.w(TAG, "User not authenticated")
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Check if there are any existing categories to assign to this expense.
-        // If no categories exist, show a prompt and trigger a dialog to add one.
+        // Check if there are any existing categories
         Log.d(TAG, "Checking if categories exist")
         if (categories.isEmpty()) {
-            Log.w(TAG, "No categories available. Prompting to add a category.") // Log a warning for missing categories.
+            Log.w(TAG, "No categories available. Prompting to add a category.")
             Toast.makeText(this, "Please create a category first", Toast.LENGTH_SHORT).show()
             showAddCategoryDialog()
             return
         }
 
-        // Ensure the user has selected a category before saving the expense.
-        // If not, show a message and exit early.
+        // Ensure the user has selected a category
         if (selectedCategoryId == null && selectedCategoryName.isEmpty()) {
-            Log.w(TAG, "No category selected.") // Warn that the user has not selected a category.
+            Log.w(TAG, "No category selected.")
             Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Validate that a description has been entered by the user.
-        // This is necessary context for the expense.
+        // Validate that a description has been entered
         val description = etDescription.text.toString().trim()
         if (description.isEmpty()) {
-            Log.w(TAG, "Description is empty.") // Warn that the description input is missing.
+            Log.w(TAG, "Description is empty.")
             Toast.makeText(this, "Please enter a description", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Attempt to parse the amount input into a valid double.
-        // If parsing fails, log an error with the exception and exit early.
+        // Attempt to parse the amount input into a valid double
         val amount = try {
             currentAmount.toDouble()
         } catch (e: NumberFormatException) {
-            Log.e(TAG, "Invalid amount entered: $currentAmount", e) // Log error and include exception stack trace.
+            Log.e(TAG, "Invalid amount entered: $currentAmount", e)
             Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Log key information before proceeding with saving.
-        // This is useful for debugging and tracking the expense being created.
+        // Log key information before proceeding with saving
         Log.i(TAG, "Creating new expense with amount: $amount, description: $description, category: $selectedCategoryName")
 
-        // Create the expense using the ViewModel.
-        // All relevant fields are passed to ensure the record is saved completely to Firestore.
+        // **KEY CHANGE**: Now calling the Firestore-based createExpense method
+        // This method will automatically handle streak updates and gamification
         viewModel.createExpense(
-            categoryId = selectedCategoryId,
+            categoryId = selectedCategoryId,  // Now String instead of Int
             categoryName = selectedCategoryName,
-            expenseDate = selectedDate.time,
+            expenseDate = selectedDate.time,  // Date will be converted to Timestamp in ViewModel
             startTime = null,
             endTime = null,
             description = description,
             amount = amount,
-            photoPath = photoFilePath  // Optional field for an image receipt
+            photoPath = photoFilePath
         )
 
-        // Log that the expense was successfully saved.
-        Log.d(TAG, "Expense saved successfully!")
+        Log.d(TAG, "Expense saved successfully with gamification integration!")
 
-        // Notify the user that the save was successful and close the screen.
-        Toast.makeText(this, "Expense saved successfully", Toast.LENGTH_SHORT).show()
+        // Notify the user and close the screen
+        Toast.makeText(this, "Expense saved successfully! Check your streak!", Toast.LENGTH_SHORT).show()
         finish()
     }
 }

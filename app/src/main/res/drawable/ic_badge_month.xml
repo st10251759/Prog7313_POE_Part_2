@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Badge background circle -->
+    <path
+        android:fillColor="#9C27B0"
+        android:pathData="M24,4C34.493,4 43,12.507 43,23C43,33.493 34.493,42 24,42C13.507,42 5,33.493 5,23C5,12.507 13.507,4 24,4Z"/>
+
+    <!-- Inner circle -->
+    <path
+        android:fillColor="#BA68C8"
+        android:pathData="M24,8C32.284,8 39,14.716 39,23C39,31.284 32.284,38 24,38C15.716,38 9,31.284 9,23C9,14.716 15.716,8 24,8Z"/>
+
+    <!-- Number 14 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,15L18,13L18,33L14,33L14,17L12,18L12,15Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M27,13L27,25L36,25L36,33L32,33L32,29L27,29L27,33L23,33L23,25L32,13L36,13L36,21L32,21L32,17L27,25Z"/>
+
+    <!-- Double star decoration -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M16,10L17,12L19,12.5L17.5,14L18,16L16,15L14,16L14.5,14L13,12.5L15,12L16,10Z"/>
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M32,10L33,12L35,12.5L33.5,14L34,16L32,15L30,16L30.5,14L29,12.5L31,12L32,10Z"/>
+</vector>

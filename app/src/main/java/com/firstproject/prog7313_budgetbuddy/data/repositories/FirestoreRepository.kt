@@ -21,6 +21,7 @@ class FirestoreRepository {
         private const val EXPENSES_COLLECTION = "expenses"
         private const val BUDGET_GOALS_COLLECTION = "budget_goals"
         private const val PHOTOS_STORAGE_PATH = "expense_photos"
+        private const val USER_STREAKS_COLLECTION = "user_streaks"
     }
 
     // ------------------------ Category Repository Methods ------------------------
@@ -566,5 +567,206 @@ class FirestoreRepository {
         } catch (e: Exception) {
             Log.e(TAG, "Error deleting photo: ${e.message}", e)
         }
+    }
+
+    // ------------------------ Gamification Repository Methods ------------------------
+
+    suspend fun getUserStreak(userId: String): UserStreak? {
+        return try {
+            Log.d(TAG, "Getting user streak for: $userId")
+            val doc = db.collection(USER_STREAKS_COLLECTION)
+                .document(userId)
+                .get()
+                .await()
+
+            if (doc.exists()) {
+                Log.d(TAG, "Found existing streak document")
+                doc.toObject(UserStreak::class.java)?.apply { id = doc.id }
+            } else {
+                Log.d(TAG, "No streak document found, creating new one")
+                // Create new streak record if doesn't exist
+                val newStreak = UserStreak(
+                    id = userId,
+                    userId = userId,
+                    currentStreak = 0,
+                    longestStreak = 0,
+                    lastLogDate = Timestamp(Date(0)), // Set to epoch to ensure first log counts
+                    totalDaysLogged = 0,
+                    badges = emptyList(),
+                    points = 0
+                )
+                createOrUpdateUserStreak(newStreak)
+                newStreak
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting user streak: ${e.message}", e)
+            null
+        }
+    }
+
+    suspend fun createOrUpdateUserStreak(userStreak: UserStreak) {
+        try {
+            Log.d(TAG, "Creating/updating user streak for: ${userStreak.userId}")
+            db.collection(USER_STREAKS_COLLECTION)
+                .document(userStreak.userId)
+                .set(userStreak.toMap())
+                .await()
+            Log.d(TAG, "User streak updated successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating user streak: ${e.message}", e)
+            throw e
+        }
+    }
+
+    fun observeUserStreak(userId: String): LiveData<UserStreak?> {
+        val result = MutableLiveData<UserStreak?>()
+
+        Log.d(TAG, "Setting up streak listener for user: $userId")
+
+        db.collection(USER_STREAKS_COLLECTION)
+            .document(userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error observing user streak: ${error.message}", error)
+                    result.value = null
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d(TAG, "Streak document updated")
+                    val streak = snapshot.toObject(UserStreak::class.java)?.apply { id = snapshot.id }
+                    result.value = streak
+                } else {
+                    Log.d(TAG, "No streak document found")
+                    result.value = null
+                }
+            }
+
+        return result
+    }
+
+    // Check if user has logged expense today
+    suspend fun hasLoggedExpenseToday(userId: String): Boolean {
+        return try {
+            val today = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.time
+
+            val tomorrow = Calendar.getInstance().apply {
+                time = today
+                add(Calendar.DAY_OF_YEAR, 1)
+            }.time
+
+            val query = db.collection(EXPENSES_COLLECTION)
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("expenseDate", Timestamp(today))
+                .whereLessThan("expenseDate", Timestamp(tomorrow))
+                .limit(1)
+                .get()
+                .await()
+
+            !query.isEmpty
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking today's expenses: ${e.message}", e)
+            false
+        }
+    }
+
+    // **MOST IMPORTANT METHOD**: Update streak when expense is logged
+    suspend fun updateUserStreakOnExpenseLog(userId: String): UserStreak? {
+        return try {
+            Log.d(TAG, "=== STARTING STREAK UPDATE FOR USER: $userId ===")
+
+            val currentStreak = getUserStreak(userId) ?: return null
+            Log.d(TAG, "Current streak data: currentStreak=${currentStreak.currentStreak}, longestStreak=${currentStreak.longestStreak}")
+
+            val today = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val lastLogCalendar = Calendar.getInstance().apply {
+                time = currentStreak.getLastLogDateAsDate()
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val daysDifference = ((today.timeInMillis - lastLogCalendar.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
+            Log.d(TAG, "Days difference: $daysDifference")
+
+            val updatedStreak = when {
+                daysDifference == 0 -> {
+                    Log.d(TAG, "Already logged today, no change")
+                    // Already logged today, no change
+                    currentStreak
+                }
+                daysDifference == 1 -> {
+                    Log.d(TAG, "Consecutive day, incrementing streak")
+                    // Consecutive day, increment streak
+                    currentStreak.copy(
+                        currentStreak = currentStreak.currentStreak + 1,
+                        longestStreak = maxOf(currentStreak.longestStreak, currentStreak.currentStreak + 1),
+                        lastLogDate = Timestamp.now(),
+                        totalDaysLogged = currentStreak.totalDaysLogged + 1
+                    )
+                }
+                else -> {
+                    Log.d(TAG, "Streak broken, resetting to 1")
+                    // Streak broken, reset to 1
+                    currentStreak.copy(
+                        currentStreak = 1,
+                        lastLogDate = Timestamp.now(),
+                        totalDaysLogged = currentStreak.totalDaysLogged + 1
+                    )
+                }
+            }
+
+            // Check for new badges
+            val newBadges = checkForNewBadges(updatedStreak)
+            Log.d(TAG, "New badges earned: ${newBadges.size}")
+
+            val finalStreak = if (newBadges.isNotEmpty()) {
+                val allBadges = (updatedStreak.badges + newBadges.map { it.id }).distinct()
+                val bonusPoints = newBadges.sumOf { it.points }
+                Log.d(TAG, "Adding ${newBadges.size} badges and $bonusPoints points")
+                updatedStreak.copy(
+                    badges = allBadges,
+                    points = updatedStreak.points + bonusPoints
+                )
+            } else {
+                updatedStreak
+            }
+
+            Log.d(TAG, "Final streak: currentStreak=${finalStreak.currentStreak}, longestStreak=${finalStreak.longestStreak}, points=${finalStreak.points}")
+
+            createOrUpdateUserStreak(finalStreak)
+            Log.d(TAG, "=== STREAK UPDATE COMPLETED ===")
+            finalStreak
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating user streak: ${e.message}", e)
+            null
+        }
+    }
+
+    private fun checkForNewBadges(userStreak: UserStreak): List<Badge> {
+        val allBadges = Badge.getAllBadges()
+        val earnedBadgeIds = userStreak.badges
+        val newBadges = mutableListOf<Badge>()
+
+        for (badge in allBadges) {
+            if (!earnedBadgeIds.contains(badge.id) && userStreak.currentStreak >= badge.requiredStreak) {
+                Log.d(TAG, "New badge earned: ${badge.name} (required: ${badge.requiredStreak}, current: ${userStreak.currentStreak})")
+                newBadges.add(badge)
+            }
+        }
+
+        return newBadges
     }
 }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Outer ring (gold) -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M24,2C35.598,2 45,11.402 45,23C45,34.598 35.598,44 24,44C12.402,44 3,34.598 3,23C3,11.402 12.402,2 24,2Z"/>
+
+    <!-- Badge background circle -->
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M24,6C33.389,6 41,13.611 41,23C41,32.389 33.389,40 24,40C14.611,40 7,32.389 7,23C7,13.611 14.611,6 24,6Z"/>
+
+    <!-- Inner circle with gradient effect -->
+    <path
+        android:fillColor="#F44336"
+        android:pathData="M24,10C31.18,10 37,15.82 37,23C37,30.18 31.18,36 24,36C16.82,36 11,30.18 11,23C11,15.82 16.82,10 24,10Z"/>
+
+    <!-- Number 60 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,12C19,12 21,13 21,16L21,17C21,19 20,20 18,20C20,20 21,21 21,23L21,24C21,27 19,28 16,28L14,28C11,28 9,27 9,24L9,23C9,21 10,20 12,20C10,20 9,19 9,17L9,16C9,13 11,12 14,12L16,12ZM14,15C13,15 13,16 13,16L13,17C13,18 13,18 14,18L16,18C17,18 17,18 17,17L17,16C17,16 17,15 16,15L14,15ZM14,21C13,21 13,22 13,22L13,24C13,24 13,25 14,25L16,25C17,25 17,24 17,24L17,22C17,22 17,21 16,21L14,21Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,12C33,12 35,13 35,16L35,24C35,27 33,28 30,28L28,28C25,28 23,27 23,24L23,16C23,13 25,12 28,12L30,12ZM28,15C27,15 27,16 27,16L27,24C27,24 27,25 28,25L30,25C31,25 31,24 31,24L31,16C31,16 31,15 30,15L28,15Z"/>
+
+    <!-- Lightning bolt (legendary symbol) -->
+    <path
+        android:fillColor="#FFEB3B"
+        android:strokeColor="#FFC107"
+        android:strokeWidth="0.5"
+        android:pathData="M28,6L20,18L25,18L22,30L32,16L26,16Z"/>
+
+    <!-- Stars decoration -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,32L13,33.5L15,34L13.5,35.5L14,37.5L12,36.5L10,37.5L10.5,35.5L9,34L11,33.5L12,32Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,32L37,33.5L39,34L37.5,35.5L38,37.5L36,36.5L34,37.5L34.5,35.5L33,34L35,33.5L36,32Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,36L25,37.5L27,38L25.5,39.5L26,41.5L24,40.5L22,41.5L22.5,39.5L21,38L23,37.5L24,36Z"/>
+</vector>
