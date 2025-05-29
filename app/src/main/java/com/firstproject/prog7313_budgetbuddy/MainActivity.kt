@@ -153,11 +153,19 @@ class MainActivity : BaseActivity() {
     }
 
     // Set up listeners for user interactions with buttons and views
+    // Add this to your existing MainActivity.kt in the setupListeners() method
+
     private fun setupListeners() {
         // Button to add a new expense
         btnAddExpense.setOnClickListener {
             startActivity(Intent(this, AddExpenseActivity::class.java))
         }
+
+        // NEW: Analytics button
+        findViewById<Button>(R.id.btnAnalytics)?.setOnClickListener {
+            startActivity(Intent(this, AnalyticsActivity::class.java))
+        }
+
         // Button to edit budget goals
         tvEditBudgetGoals.setOnClickListener {
             startActivity(Intent(this, BudgetGoalsActivity::class.java))
@@ -168,6 +176,12 @@ class MainActivity : BaseActivity() {
         findViewById<View>(R.id.navExpenseList).setOnClickListener {
             startActivity(Intent(this, ExpenseListActivity::class.java))
         }
+
+        // NEW: Analytics navigation (if using bottom nav)
+        findViewById<View>(R.id.navAnalytics)?.setOnClickListener {
+            startActivity(Intent(this, AnalyticsActivity::class.java))
+        }
+
         findViewById<View>(R.id.navCategorySpending).setOnClickListener {
             startActivity(Intent(this, CategorySpendingActivity::class.java))
         }

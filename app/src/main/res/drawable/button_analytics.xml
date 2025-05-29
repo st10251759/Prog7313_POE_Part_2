@@ -1,0 +1,5 @@
+<!-- button_analytics.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#6A5ACD" />
+    <corners android:radius="12dp" />
+</shape>

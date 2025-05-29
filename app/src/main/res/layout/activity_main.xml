@@ -260,6 +260,26 @@
                 android:textColor="#FFFFFF"
                 android:textSize="16sp" />
 
+            <!-- Analytics Button -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnAnalytics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/button_analytics_bg"
+                android:drawableStart="@drawable/ic_analytics"
+                android:drawablePadding="8dp"
+                android:drawableTint="#FFFFFF"
+                android:gravity="center"
+                android:paddingHorizontal="120dp"
+                android:paddingVertical="12dp"
+                android:text="View Analytics"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
             <!-- Category Spending Section -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardCategorySpending"
@@ -375,7 +395,34 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Expense List"
+                android:text="Expenses"
+                android:textColor="@color/text_tertiary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Analytics -->
+        <LinearLayout
+            android:id="@+id/navAnalytics"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="Analytics"
+                android:src="@drawable/ic_analytics"
+                app:tint="@color/text_tertiary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Analytics"
                 android:textColor="@color/text_tertiary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -402,7 +449,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Category Spending"
+                android:text="Categories"
                 android:textColor="@color/text_tertiary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -429,7 +476,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Budget Goals"
+                android:text="Budget"
                 android:textColor="@color/text_tertiary"
                 android:textSize="12sp" />
         </LinearLayout>
