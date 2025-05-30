@@ -905,4 +905,180 @@ class FirestoreRepository {
             Log.e(TAG, "Error updating budget keeper status: ${e.message}", e)
         }
     }
+
+
+    /**
+     * Search and filter expenses with advanced criteria
+     */
+    fun searchAndFilterExpenses(
+        userId: String,
+        filter: ExpenseFilter
+    ): LiveData<List<Expense>> {
+        val result = MutableLiveData<List<Expense>>()
+
+        Log.d(TAG, "Setting up search/filter listener for user: $userId")
+
+        // Start with basic user query
+        db.collection(EXPENSES_COLLECTION)
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error searching expenses: ${error.message}", error)
+                    result.value = emptyList()
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.w(TAG, "Search expenses snapshot is null")
+                    result.value = emptyList()
+                    return@addSnapshotListener
+                }
+
+                val expenses = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Expense::class.java)?.apply { id = doc.id }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error converting expense document ${doc.id}: ${e.message}", e)
+                        null
+                    }
+                }
+
+                // Apply filters in memory for complex criteria
+                val filteredExpenses = applyFiltersToExpenses(expenses, filter)
+                Log.d(TAG, "Filtered expenses: ${filteredExpenses.size} from ${expenses.size}")
+
+                result.value = filteredExpenses
+            }
+
+        return result
+    }
+
+    /**
+     * Apply filters to expense list in memory
+     */
+    private fun applyFiltersToExpenses(expenses: List<Expense>, filter: ExpenseFilter): List<Expense> {
+        var filteredExpenses = expenses
+
+        // Apply keyword search
+        if (filter.searchKeyword.isNotBlank()) {
+            val keyword = filter.searchKeyword.lowercase()
+            filteredExpenses = filteredExpenses.filter { expense ->
+                expense.description.lowercase().contains(keyword) ||
+                        expense.category.lowercase().contains(keyword)
+            }
+        }
+
+        // Apply date range filter
+        val (startDate, endDate) = filter.getDateRange()
+        if (startDate != null || endDate != null) {
+            filteredExpenses = filteredExpenses.filter { expense ->
+                val expenseDate = expense.getExpenseDateAsDate()
+                val afterStart = startDate?.let { expenseDate >= it } ?: true
+                val beforeEnd = endDate?.let { expenseDate <= it } ?: true
+                afterStart && beforeEnd
+            }
+        }
+
+        // Apply amount range filter
+        if (filter.minAmount != null || filter.maxAmount != null) {
+            filteredExpenses = filteredExpenses.filter { expense ->
+                val aboveMin = filter.minAmount?.let { expense.totalAmount >= it } ?: true
+                val belowMax = filter.maxAmount?.let { expense.totalAmount <= it } ?: true
+                aboveMin && belowMax
+            }
+        }
+
+        // Apply category filter
+        if (filter.selectedCategories.isNotEmpty()) {
+            filteredExpenses = filteredExpenses.filter { expense ->
+                expense.categoryId in filter.selectedCategories
+            }
+        }
+
+        // Apply sorting
+        filteredExpenses = when (filter.sortBy) {
+            SortOption.DATE_DESC -> filteredExpenses.sortedByDescending { it.getExpenseDateAsDate() }
+            SortOption.DATE_ASC -> filteredExpenses.sortedBy { it.getExpenseDateAsDate() }
+            SortOption.AMOUNT_DESC -> filteredExpenses.sortedByDescending { it.totalAmount }
+            SortOption.AMOUNT_ASC -> filteredExpenses.sortedBy { it.totalAmount }
+            SortOption.CATEGORY -> filteredExpenses.sortedBy { it.category }
+            SortOption.DESCRIPTION -> filteredExpenses.sortedBy { it.description }
+        }
+
+        return filteredExpenses
+    }
+
+    /**
+     * Get quick search suggestions based on user's expense history
+     */
+    suspend fun getSearchSuggestions(userId: String, query: String): List<String> {
+        return try {
+            val snapshot = db.collection(EXPENSES_COLLECTION)
+                .whereEqualTo("userId", userId)
+                .limit(100) // Limit for performance
+                .get()
+                .await()
+
+            val suggestions = mutableSetOf<String>()
+            val queryLower = query.lowercase()
+
+            snapshot.documents.forEach { doc ->
+                val expense = doc.toObject(Expense::class.java)
+                expense?.let {
+                    // Add matching descriptions
+                    if (it.description.lowercase().contains(queryLower)) {
+                        suggestions.add(it.description)
+                    }
+                    // Add matching categories
+                    if (it.category.lowercase().contains(queryLower)) {
+                        suggestions.add(it.category)
+                    }
+                }
+            }
+
+            suggestions.take(5).toList() // Return top 5 suggestions
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting search suggestions: ${e.message}", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Get popular search terms for the user
+     */
+    suspend fun getPopularSearchTerms(userId: String): List<String> {
+        return try {
+            val snapshot = db.collection(EXPENSES_COLLECTION)
+                .whereEqualTo("userId", userId)
+                .limit(50)
+                .get()
+                .await()
+
+            val termFrequency = mutableMapOf<String, Int>()
+
+            snapshot.documents.forEach { doc ->
+                val expense = doc.toObject(Expense::class.java)
+                expense?.let {
+                    // Extract words from description
+                    it.description.split("\\s+".toRegex()).forEach { word ->
+                        if (word.length > 3) { // Only consider words longer than 3 characters
+                            val cleanWord = word.lowercase().replace(Regex("[^a-z0-9]"), "")
+                            if (cleanWord.isNotBlank()) {
+                                termFrequency[cleanWord] = termFrequency.getOrDefault(cleanWord, 0) + 1
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Return top 10 most frequent terms
+            termFrequency.toList()
+                .sortedByDescending { it.second }
+                .take(10)
+                .map { it.first }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting popular search terms: ${e.message}", e)
+            emptyList()
+        }
+    }
 }

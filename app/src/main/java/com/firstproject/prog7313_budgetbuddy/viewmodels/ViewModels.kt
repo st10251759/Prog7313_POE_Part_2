@@ -432,6 +432,139 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     }
 
 
+    // Add these methods to your existing ViewModels.kt class
+
+// ------------------------ Search and Filter Methods ------------------------
+
+    /**
+     * Search and filter expenses with advanced criteria
+     */
+    fun searchAndFilterExpenses(filter: ExpenseFilter): LiveData<List<Expense>> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
+        return repository.searchAndFilterExpenses(currentUserId, filter)
+    }
+
+    /**
+     * Get search suggestions based on user input
+     */
+    fun getSearchSuggestions(query: String): LiveData<List<String>> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
+        val result = MutableLiveData<List<String>>()
+
+        viewModelScope.launch {
+            try {
+                val suggestions = repository.getSearchSuggestions(currentUserId, query)
+                result.value = suggestions
+            } catch (e: Exception) {
+                android.util.Log.e("ViewModels", "Error getting search suggestions", e)
+                result.value = emptyList()
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * Get popular search terms for quick access
+     */
+    fun getPopularSearchTerms(): LiveData<List<String>> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
+        val result = MutableLiveData<List<String>>()
+
+        viewModelScope.launch {
+            try {
+                val terms = repository.getPopularSearchTerms(currentUserId)
+                result.value = terms
+            } catch (e: Exception) {
+                android.util.Log.e("ViewModels", "Error getting popular search terms", e)
+                result.value = emptyList()
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * Save user search query for analytics/suggestions
+     */
+    fun saveSearchQuery(query: String) = viewModelScope.launch {
+        // This could be used to track popular searches
+        // For now, we'll just log it
+        android.util.Log.d("ViewModels", "User searched for: $query")
+    }
+
+    /**
+     * Get expense statistics for current filter
+     */
+    fun getExpenseStatistics(filter: ExpenseFilter): LiveData<ExpenseStatistics> {
+        val result = MediatorLiveData<ExpenseStatistics>()
+
+        val expensesLiveData = searchAndFilterExpenses(filter)
+
+        result.addSource(expensesLiveData) { expenses ->
+            if (expenses.isNotEmpty()) {
+                val statistics = calculateExpenseStatistics(expenses)
+                result.value = statistics
+            } else {
+                result.value = ExpenseStatistics()
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * Calculate statistics from expense list
+     */
+    private fun calculateExpenseStatistics(expenses: List<Expense>): ExpenseStatistics {
+        if (expenses.isEmpty()) return ExpenseStatistics()
+
+        val totalAmount = expenses.sumOf { it.totalAmount }
+        val averageAmount = totalAmount / expenses.size
+        val maxAmount = expenses.maxOfOrNull { it.totalAmount } ?: 0.0
+        val minAmount = expenses.minOfOrNull { it.totalAmount } ?: 0.0
+
+        // Category breakdown
+        val categoryTotals = expenses.groupBy { it.category }
+            .mapValues { (_, categoryExpenses) ->
+                categoryExpenses.sumOf { it.totalAmount }
+            }
+            .toList()
+            .sortedByDescending { it.second }
+
+        // Date range
+        val dates = expenses.map { it.getExpenseDateAsDate() }
+        val startDate = dates.minOrNull()
+        val endDate = dates.maxOrNull()
+
+        return ExpenseStatistics(
+            totalAmount = totalAmount,
+            averageAmount = averageAmount,
+            maxAmount = maxAmount,
+            minAmount = minAmount,
+            transactionCount = expenses.size,
+            categoryBreakdown = categoryTotals,
+            dateRange = Pair(startDate, endDate),
+            topCategory = categoryTotals.firstOrNull()?.first ?: "",
+            topCategoryAmount = categoryTotals.firstOrNull()?.second ?: 0.0
+        )
+    }
+
+    /**
+     * Data class for expense statistics
+     */
+    data class ExpenseStatistics(
+        val totalAmount: Double = 0.0,
+        val averageAmount: Double = 0.0,
+        val maxAmount: Double = 0.0,
+        val minAmount: Double = 0.0,
+        val transactionCount: Int = 0,
+        val categoryBreakdown: List<Pair<String, Double>> = emptyList(),
+        val dateRange: Pair<Date?, Date?> = Pair(null, null),
+        val topCategory: String = "",
+        val topCategoryAmount: Double = 0.0
+    )
+
     // ------------------------ Photo Methods ------------------------
 
     // Get expenses by period for specific user (used in activities)
@@ -568,4 +701,5 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
 
         return result
     }
+
 }
