@@ -196,10 +196,13 @@ class AnalyticsActivity : AppCompatActivity() {
                 setDrawAxisLine(false)
                 axisMinimum = 0f
 
-                // Format Y-axis values as currency
+                // Format Y-axis values as currency with proper intervals
                 valueFormatter = object : ValueFormatter() {
                     override fun getFormattedValue(value: Float): String {
-                        return "R${value.toInt()}"
+                        return when {
+                            value >= 1000 -> "R${(value / 1000).toInt()}k"
+                            else -> "R${value.toInt()}"
+                        }
                     }
                 }
             }
@@ -242,7 +245,14 @@ class AnalyticsActivity : AppCompatActivity() {
             setScaleEnabled(true)
             setPinchZoom(false)
             setDrawGridBackground(false)
-            legend.isEnabled = false
+            legend.apply {
+                isEnabled = true
+                orientation = com.github.mikephil.charting.components.Legend.LegendOrientation.VERTICAL
+                verticalAlignment = com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.BOTTOM
+                horizontalAlignment = com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.LEFT
+                textColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.text_secondary)
+                textSize = 10f
+            }
             setFitBars(true)
 
             xAxis.apply {
@@ -251,8 +261,10 @@ class AnalyticsActivity : AppCompatActivity() {
                 granularity = 1f
                 textColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.text_secondary)
                 textSize = 10f
-                labelRotationAngle = -45f
+                labelRotationAngle = 0f
                 setAvoidFirstLastClipping(true)
+                // Don't show labels on X-axis for bar chart
+                setDrawLabels(false)
             }
 
             axisRight.isEnabled = false
@@ -267,7 +279,10 @@ class AnalyticsActivity : AppCompatActivity() {
 
                 valueFormatter = object : ValueFormatter() {
                     override fun getFormattedValue(value: Float): String {
-                        return "R${value.toInt()}"
+                        return when {
+                            value >= 1000 -> "R${(value / 1000).toInt()}k"
+                            else -> "R${value.toInt()}"
+                        }
                     }
                 }
             }
@@ -499,7 +514,7 @@ class AnalyticsActivity : AppCompatActivity() {
                     TimePeriod.WEEK -> goal.maxGoalAmount / 4.3 // Approximate weeks in a month
                     TimePeriod.MONTH -> goal.maxGoalAmount
                     TimePeriod.YEAR -> goal.maxGoalAmount * 12
-                    TimePeriod.CUSTOM -> goal.maxGoalAmount // Added CUSTOM case
+                    TimePeriod.CUSTOM -> goal.maxGoalAmount
                 }
             }
 
@@ -536,21 +551,21 @@ class AnalyticsActivity : AppCompatActivity() {
         when (currentChartType) {
             ChartType.LINE -> {
                 lineChart.visibility = View.VISIBLE
-                tvChartTitle.text = "📈 Spending Trend"
-                setupLineChart()
+                tvChartTitle.text = "📈 Cumulative Spending Trend"
+                setupImprovedLineChart()
                 chartLegend.visibility = if (currentBudgetGoal != null) View.VISIBLE else View.GONE
             }
             ChartType.PIE -> {
                 pieChart.visibility = View.VISIBLE
                 tvChartTitle.text = "🥧 Category Breakdown"
-                setupPieChart()
+                setupImprovedPieChart()
                 chartLegend.visibility = View.GONE
             }
             ChartType.BAR -> {
                 barChart.visibility = View.VISIBLE
                 tvChartTitle.text = "📊 Category Comparison"
-                setupBarChart()
-                chartLegend.visibility = if (currentBudgetGoal != null) View.VISIBLE else View.GONE
+                setupImprovedBarChart()
+                chartLegend.visibility = View.GONE
             }
         }
     }
@@ -573,117 +588,275 @@ class AnalyticsActivity : AppCompatActivity() {
         if (show) hideAllCharts()
     }
 
-    private fun setupLineChart() {
+    private fun setupImprovedLineChart() {
         val entries = mutableListOf<Entry>()
-        val dateLabels = mutableListOf<String>()
-
-        // Group expenses by date
         val (startDate, endDate) = getDateRange()
-        val expensesByDate = currentExpenses.groupBy { expense ->
-            val calendar = Calendar.getInstance()
-            calendar.time = expense.getExpenseDateAsDate()
-            calendar.set(Calendar.HOUR_OF_DAY, 0)
-            calendar.set(Calendar.MINUTE, 0)
-            calendar.set(Calendar.SECOND, 0)
-            calendar.set(Calendar.MILLISECOND, 0)
-            calendar.time
-        }
 
-        // Determine date format and increment based on period
-        val (dateFormat, increment, incrementValue) = when {
+        Log.d(TAG, "Setting up line chart with ${currentExpenses.size} expenses")
+
+        // Determine grouping and labels based on period
+        val (groupedData, labels) = when {
             isCustomDateRange -> {
                 val daysDiff = ((endDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt()
                 when {
-                    daysDiff <= 7 -> Triple(SimpleDateFormat("EEE", Locale.getDefault()), Calendar.DAY_OF_YEAR, 1)
-                    daysDiff <= 60 -> Triple(SimpleDateFormat("MMM dd", Locale.getDefault()), Calendar.DAY_OF_YEAR, 3)
-                    else -> Triple(SimpleDateFormat("MMM", Locale.getDefault()), Calendar.MONTH, 1)
+                    daysDiff <= 7 -> groupByDays(startDate, endDate)
+                    daysDiff <= 60 -> groupByWeeks(startDate, endDate)
+                    else -> groupByMonths(startDate, endDate)
                 }
             }
-            currentPeriod == TimePeriod.WEEK -> Triple(SimpleDateFormat("EEE", Locale.getDefault()), Calendar.DAY_OF_YEAR, 1)
-            currentPeriod == TimePeriod.MONTH -> Triple(SimpleDateFormat("MMM dd", Locale.getDefault()), Calendar.DAY_OF_YEAR, 2)
-            currentPeriod == TimePeriod.YEAR -> Triple(SimpleDateFormat("MMM", Locale.getDefault()), Calendar.MONTH, 1)
-            currentPeriod == TimePeriod.CUSTOM -> {
-                val daysDiff = ((endDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt()
-                when {
-                    daysDiff <= 7 -> Triple(SimpleDateFormat("EEE", Locale.getDefault()), Calendar.DAY_OF_YEAR, 1)
-                    daysDiff <= 60 -> Triple(SimpleDateFormat("MMM dd", Locale.getDefault()), Calendar.DAY_OF_YEAR, 3)
-                    else -> Triple(SimpleDateFormat("MMM", Locale.getDefault()), Calendar.MONTH, 1)
-                }
-            }
-            else -> Triple(SimpleDateFormat("EEE", Locale.getDefault()), Calendar.DAY_OF_YEAR, 1) // Default fallback
+            currentPeriod == TimePeriod.WEEK -> groupByDays(startDate, endDate)
+            currentPeriod == TimePeriod.MONTH -> groupByWeeks(startDate, endDate)
+            currentPeriod == TimePeriod.YEAR -> groupByQuarters(startDate, endDate)
+            else -> groupByDays(startDate, endDate)
         }
 
-        val calendar = Calendar.getInstance()
-        calendar.time = startDate
-        var index = 0f
+        Log.d(TAG, "Grouped data: ${groupedData.size} periods, Labels: $labels")
 
-        while (calendar.time <= endDate) {
-            val currentDate = calendar.time
-            val totalForDate = expensesByDate[currentDate]?.sumOf { it.totalAmount } ?: 0.0
-
-            entries.add(Entry(index, totalForDate.toFloat()))
-            dateLabels.add(dateFormat.format(currentDate))
-
-            calendar.add(increment, incrementValue)
-            index++
+        // Create cumulative entries - Fixed logic
+        var cumulativeTotal = 0.0
+        groupedData.forEachIndexed { index, amount ->
+            cumulativeTotal += amount
+            entries.add(Entry(index.toFloat(), cumulativeTotal.toFloat()))
+            Log.d(TAG, "Entry $index: Amount = $amount, Cumulative = $cumulativeTotal")
         }
 
-        val dataSet = LineDataSet(entries, "Daily Spending").apply {
+        // Ensure we have data to plot
+        if (entries.isEmpty()) {
+            Log.w(TAG, "No entries to plot")
+            showNoData()
+            return
+        }
+
+        val dataSet = LineDataSet(entries, "Cumulative Spending").apply {
             color = ContextCompat.getColor(this@AnalyticsActivity, R.color.celadon)
             setCircleColor(ContextCompat.getColor(this@AnalyticsActivity, R.color.asparagus))
             lineWidth = 3f
-            circleRadius = 5f
+            circleRadius = 6f
             setCircleHoleColor(Color.WHITE)
-            circleHoleRadius = 2f
+            circleHoleRadius = 3f
             setDrawFilled(true)
             fillDrawable = ContextCompat.getDrawable(this@AnalyticsActivity, R.drawable.line_chart_gradient)
-            valueTextSize = 0f // Hide values on points for cleaner look
+            valueTextSize = 0f
             setDrawValues(false)
-
-            // Enable highlighting
             isHighlightEnabled = true
             highlightLineWidth = 2f
             setDrawHighlightIndicators(true)
+            mode = LineDataSet.Mode.LINEAR
         }
 
         lineChart.data = LineData(dataSet)
-        lineChart.xAxis.valueFormatter = IndexAxisValueFormatter(dateLabels)
+        lineChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
 
-        // Clear previous limit lines
+        // Fix X-axis configuration
+        lineChart.xAxis.apply {
+            granularity = 1f
+            setLabelCount(labels.size, false)
+            axisMinimum = 0f
+            axisMaximum = (labels.size - 1).toFloat()
+        }
+
+        // Set appropriate Y-axis scaling - Fixed calculation
+        val maxValue = if (cumulativeTotal > 0) cumulativeTotal.toFloat() else 1000f
+        val yAxisMax = when {
+            maxValue <= 500 -> 500f
+            maxValue <= 1000 -> 1000f
+            maxValue <= 2000 -> 2000f
+            maxValue <= 5000 -> 5000f
+            maxValue <= 10000 -> 10000f
+            else -> ((maxValue / 5000).toInt() + 1) * 5000f
+        }
+
+        lineChart.axisLeft.apply {
+            axisMaximum = yAxisMax
+            axisMinimum = 0f
+            setLabelCount(6, false)
+        }
+
+        // Clear previous limit lines and add budget goal lines if available
         lineChart.axisLeft.removeAllLimitLines()
-
-        // Add budget goal lines if available
         currentBudgetGoal?.let { goal ->
-            val daysDiff = ((endDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt() + 1
-            val dailyMin = goal.minGoalAmount / 30.0 // Assuming monthly budget
-            val dailyMax = goal.maxGoalAmount / 30.0
+            // For cumulative spending chart, we want to show the TOTAL budget goals
+            // not scaled down by time period, since we're showing cumulative amounts
 
-            val minLine = LimitLine(dailyMin.toFloat(), "Min Goal (R${dailyMin.toInt()}/day)").apply {
+            Log.d(TAG, "Budget Goal - Min: ${goal.minGoalAmount}, Max: ${goal.maxGoalAmount}")
+
+            // Use the full monthly budget amounts for reference lines
+            val minGoalForPeriod = goal.minGoalAmount.toFloat()
+            val maxGoalForPeriod = goal.maxGoalAmount.toFloat()
+
+            Log.d(TAG, "Plotting goal lines at Min: $minGoalForPeriod, Max: $maxGoalForPeriod")
+
+            val minLine = LimitLine(minGoalForPeriod, "Min Goal (${formatCurrency(goal.minGoalAmount)})").apply {
                 lineColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.olivine)
                 lineWidth = 2f
                 enableDashedLine(10f, 10f, 0f)
                 labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
                 textSize = 9f
+                textColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.olivine)
             }
 
-            val maxLine = LimitLine(dailyMax.toFloat(), "Max Goal (R${dailyMax.toInt()}/day)").apply {
+            val maxLine = LimitLine(maxGoalForPeriod, "Max Goal (${formatCurrency(goal.maxGoalAmount)})").apply {
                 lineColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.coral_pink)
                 lineWidth = 2f
                 enableDashedLine(10f, 10f, 0f)
                 labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
                 textSize = 9f
+                textColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.coral_pink)
             }
 
             lineChart.axisLeft.apply {
                 addLimitLine(minLine)
                 addLimitLine(maxLine)
+
+                // Ensure Y-axis maximum accommodates the goal lines
+                axisMaximum = maxOf(yAxisMax, maxGoalForPeriod + 500f)
             }
         }
 
+        Log.d(TAG, "Line chart setup complete with ${entries.size} entries")
         lineChart.invalidate()
     }
 
-    private fun setupPieChart() {
+    private fun groupByDays(startDate: Date, endDate: Date): Pair<List<Double>, List<String>> {
+        val amounts = mutableListOf<Double>()
+        val labels = mutableListOf<String>()
+        val expensesByDate = mutableMapOf<String, Double>()
+
+        // First, group expenses by date string
+        currentExpenses.forEach { expense ->
+            val calendar = Calendar.getInstance()
+            calendar.time = expense.getExpenseDateAsDate()
+            val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+            expensesByDate[dateKey] = expensesByDate.getOrDefault(dateKey, 0.0) + expense.totalAmount
+        }
+
+        val calendar = Calendar.getInstance()
+        calendar.time = startDate
+        val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
+
+        while (calendar.time <= endDate) {
+            val dateKey = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+            val totalForDate = expensesByDate[dateKey] ?: 0.0
+            amounts.add(totalForDate)
+            labels.add(dayFormat.format(calendar.time))
+
+            Log.d(TAG, "Day ${dayFormat.format(calendar.time)}: R$totalForDate")
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+        }
+
+        Log.d(TAG, "Days grouping: ${amounts.size} days, total expenses: ${amounts.sum()}")
+        return Pair(amounts, labels)
+    }
+
+    private fun groupByWeeks(startDate: Date, endDate: Date): Pair<List<Double>, List<String>> {
+        val amounts = mutableListOf<Double>()
+        val labels = mutableListOf<String>()
+
+        val calendar = Calendar.getInstance()
+        calendar.time = startDate
+        // Start from the beginning of the week
+        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+
+        var weekNumber = 1
+
+        while (calendar.time <= endDate) {
+            val weekStart = calendar.time
+            calendar.add(Calendar.DAY_OF_YEAR, 6)
+            val weekEnd = if (calendar.time > endDate) endDate else calendar.time
+
+            val weekTotal = currentExpenses.filter { expense ->
+                val expenseDate = expense.getExpenseDateAsDate()
+                expenseDate >= weekStart && expenseDate <= weekEnd
+            }.sumOf { it.totalAmount }
+
+            amounts.add(weekTotal)
+            labels.add("Week $weekNumber")
+
+            Log.d(TAG, "Week $weekNumber: R$weekTotal")
+
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+            weekNumber++
+        }
+
+        Log.d(TAG, "Weeks grouping: ${amounts.size} weeks, total expenses: ${amounts.sum()}")
+        return Pair(amounts, labels)
+    }
+
+    private fun groupByQuarters(startDate: Date, endDate: Date): Pair<List<Double>, List<String>> {
+        val amounts = mutableListOf<Double>()
+        val labels = mutableListOf<String>()
+
+        val calendar = Calendar.getInstance()
+        calendar.time = startDate
+
+        for (quarter in 1..4) {
+            val quarterStart = Calendar.getInstance().apply {
+                set(Calendar.YEAR, calendar.get(Calendar.YEAR))
+                set(Calendar.MONTH, (quarter - 1) * 3)
+                set(Calendar.DAY_OF_MONTH, 1)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val quarterEnd = Calendar.getInstance().apply {
+                set(Calendar.YEAR, calendar.get(Calendar.YEAR))
+                set(Calendar.MONTH, quarter * 3 - 1)
+                set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+                set(Calendar.HOUR_OF_DAY, 23)
+                set(Calendar.MINUTE, 59)
+                set(Calendar.SECOND, 59)
+                set(Calendar.MILLISECOND, 999)
+            }
+
+            val quarterTotal = currentExpenses.filter { expense ->
+                val expenseDate = expense.getExpenseDateAsDate()
+                expenseDate >= quarterStart.time && expenseDate <= quarterEnd.time
+            }.sumOf { it.totalAmount }
+
+            amounts.add(quarterTotal)
+            labels.add("Q$quarter")
+        }
+
+        return Pair(amounts, labels)
+    }
+
+    private fun groupByMonths(startDate: Date, endDate: Date): Pair<List<Double>, List<String>> {
+        val amounts = mutableListOf<Double>()
+        val labels = mutableListOf<String>()
+
+        val calendar = Calendar.getInstance()
+        calendar.time = startDate
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+
+        val monthFormat = SimpleDateFormat("MMM", Locale.getDefault())
+
+        while (calendar.time <= endDate) {
+            val monthStart = calendar.time
+            calendar.add(Calendar.MONTH, 1)
+            calendar.add(Calendar.DAY_OF_MONTH, -1)
+            val monthEnd = if (calendar.time > endDate) endDate else calendar.time
+
+            val monthTotal = currentExpenses.filter { expense ->
+                val expenseDate = expense.getExpenseDateAsDate()
+                expenseDate >= monthStart && expenseDate <= monthEnd
+            }.sumOf { it.totalAmount }
+
+            amounts.add(monthTotal)
+            labels.add(monthFormat.format(monthStart))
+
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+        }
+
+        return Pair(amounts, labels)
+    }
+
+    private fun setupImprovedPieChart() {
         // Group expenses by category
         val expensesByCategory = currentExpenses.groupBy { it.category }
         val totalAmount = currentExpenses.sumOf { it.totalAmount }
@@ -738,17 +911,41 @@ class AnalyticsActivity : AppCompatActivity() {
             selectionShift = 8f
         }
 
+        // Move legend below the chart
+        pieChart.legend.apply {
+            isEnabled = true
+            orientation = com.github.mikephil.charting.components.Legend.LegendOrientation.HORIZONTAL
+            verticalAlignment = com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.BOTTOM
+            horizontalAlignment = com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.CENTER
+            textColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.text_secondary)
+            textSize = 10f
+            isWordWrapEnabled = true
+
+            // Custom legend labels with percentages
+            val legendLabels = mutableListOf<String>()
+            entries.forEach { entry ->
+                val percentage = entry.value / totalAmount.toFloat() * 100
+                legendLabels.add("${entry.label} (${percentage.toInt()}%)")
+            }
+            setCustom(legendLabels.mapIndexed { index, label ->
+                com.github.mikephil.charting.components.LegendEntry().apply {
+                    this.label = label
+                    formColor = customColors[index % customColors.size]
+                }
+            })
+        }
+
         pieChart.data = PieData(dataSet)
         pieChart.highlightValues(null)
         pieChart.invalidate()
     }
 
-    private fun setupBarChart() {
+    private fun setupImprovedBarChart() {
         // Group expenses by category
         val expensesByCategory = currentExpenses.groupBy { it.category }
 
         val entries = mutableListOf<BarEntry>()
-        val labels = mutableListOf<String>()
+        val categoryLabels = mutableListOf<String>()
         val colors = mutableListOf<Int>()
 
         // Sort by amount and take top categories
@@ -756,19 +953,25 @@ class AnalyticsActivity : AppCompatActivity() {
             .sortedByDescending { it.value.sumOf { expense -> expense.totalAmount } }
             .take(10) // Limit to top 10 categories
 
+        // Custom colors for consistency
+        val customColors = listOf(
+            ContextCompat.getColor(this, R.color.celadon),
+            ContextCompat.getColor(this, R.color.asparagus),
+            ContextCompat.getColor(this, R.color.olivine),
+            ContextCompat.getColor(this, R.color.coral_pink),
+            Color.parseColor("#FF9800"), // Orange
+            Color.parseColor("#9C27B0"), // Purple
+            Color.parseColor("#2196F3"), // Blue
+            Color.parseColor("#4CAF50"), // Green
+            Color.parseColor("#FF5722"), // Deep Orange
+            Color.parseColor("#607D8B")  // Blue Grey
+        )
+
         sortedCategories.forEachIndexed { index, (category, expenses) ->
             val total = expenses.sumOf { it.totalAmount }
             entries.add(BarEntry(index.toFloat(), total.toFloat()))
-            labels.add(if (category.length > 8) "${category.take(8)}..." else category)
-
-            // Assign colors
-            colors.add(when (index % 5) {
-                0 -> ContextCompat.getColor(this, R.color.celadon)
-                1 -> ContextCompat.getColor(this, R.color.asparagus)
-                2 -> ContextCompat.getColor(this, R.color.olivine)
-                3 -> ContextCompat.getColor(this, R.color.coral_pink)
-                else -> Color.parseColor("#FF9800")
-            })
+            categoryLabels.add(category)
+            colors.add(customColors[index % customColors.size])
         }
 
         val dataSet = BarDataSet(entries, "Category Spending").apply {
@@ -777,18 +980,41 @@ class AnalyticsActivity : AppCompatActivity() {
             valueTextSize = 10f
             valueFormatter = object : ValueFormatter() {
                 override fun getFormattedValue(value: Float): String {
-                    return if (value > 0) "R${value.toInt()}" else ""
+                    return if (value > 0) {
+                        when {
+                            value >= 1000 -> "R${(value / 1000).toInt()}k"
+                            else -> "R${value.toInt()}"
+                        }
+                    } else ""
                 }
             }
         }
 
+        // Set up legend with category names and colors
+        barChart.legend.apply {
+            isEnabled = true
+            orientation = com.github.mikephil.charting.components.Legend.LegendOrientation.VERTICAL
+            verticalAlignment = com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.CENTER
+            horizontalAlignment = com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.RIGHT
+            textColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.text_secondary)
+            textSize = 10f
+
+            // Custom legend entries
+            setCustom(categoryLabels.mapIndexed { index, label ->
+                com.github.mikephil.charting.components.LegendEntry().apply {
+                    this.label = if (label.length > 12) "${label.take(12)}..." else label
+                    formColor = colors[index]
+                }
+            })
+        }
+
         barChart.data = BarData(dataSet)
-        barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
 
-        // Clear previous limit lines
+        // Don't show X-axis labels since we're using legend
+        barChart.xAxis.setDrawLabels(false)
+
+        // Clear previous limit lines and add budget goal lines if available
         barChart.axisLeft.removeAllLimitLines()
-
-        // Add budget goal lines if available
         currentBudgetGoal?.let { goal ->
             val minLine = LimitLine(goal.minGoalAmount.toFloat(), "Min Budget").apply {
                 lineColor = ContextCompat.getColor(this@AnalyticsActivity, R.color.olivine)

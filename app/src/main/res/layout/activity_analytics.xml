@@ -451,7 +451,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Spending Trend"
+                            android:text="Cumulative Spending Trend"
                             android:textColor="@color/asparagus"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -463,13 +463,14 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@drawable/ic_fullscreen"
                             android:contentDescription="Fullscreen"
-                            app:tint="@color/asparagus" />
+                            app:tint="@color/asparagus"
+                            android:visibility="gone" />
                     </LinearLayout>
 
                     <!-- Chart Frame with Better Styling -->
                     <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="350dp"
+                        android:layout_height="400dp"
                         android:background="@drawable/chart_background">
 
                         <!-- Line Chart -->
@@ -540,41 +541,56 @@
                         </LinearLayout>
                     </FrameLayout>
 
-                    <!-- Chart Legend/Info -->
+                    <!-- Chart Legend/Info for Line Chart Budget Lines -->
                     <LinearLayout
                         android:id="@+id/chartLegend"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:layout_marginTop="12dp"
+                        android:gravity="center"
                         android:visibility="gone">
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_marginEnd="4dp"
-                            android:layout_gravity="center_vertical"
-                            android:background="@drawable/legend_min_goal" />
-
-                        <TextView
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Min Goal"
-                            android:textSize="10sp"
-                            android:layout_marginEnd="16dp" />
+                            android:orientation="horizontal"
+                            android:layout_marginEnd="24dp">
 
-                        <View
-                            android:layout_width="12dp"
-                            android:layout_height="12dp"
-                            android:layout_marginEnd="4dp"
-                            android:layout_gravity="center_vertical"
-                            android:background="@drawable/legend_max_goal" />
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="2dp"
+                                android:layout_marginEnd="6dp"
+                                android:layout_gravity="center_vertical"
+                                android:background="@color/olivine" />
 
-                        <TextView
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Min Goal"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Max Goal"
-                            android:textSize="10sp" />
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="2dp"
+                                android:layout_marginEnd="6dp"
+                                android:layout_gravity="center_vertical"
+                                android:background="@color/coral_pink" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Max Goal"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
