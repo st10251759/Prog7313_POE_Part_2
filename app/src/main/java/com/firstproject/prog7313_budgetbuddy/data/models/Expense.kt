@@ -8,34 +8,29 @@ data class Expense(
     var id: String = "",
     val userId: String = "",
     val categoryId: String? = null,
+    val category: String = "",
     val expenseDate: Timestamp = Timestamp.now(),
     val startTime: String? = null,
     val endTime: String? = null,
-    val category: String = "",
     val description: String = "",
     val totalAmount: Double = 0.0,
-    val photoUrl: String? = null, // Changed from photoId to photoUrl for Firebase Storage
-    val photoPath: String? = null // Local path for display purposes
+    val photoUrl: String? = null,
+    val photoPath: String? = null
 ) {
-    // Empty constructor required for Firestore
-    constructor() : this("", "", null, Timestamp.now(), null, null, "", "", 0.0, null, null)
-
     fun toMap(): Map<String, Any> {
-        val map = mutableMapOf<String, Any>(
+        return mapOf(
+            "id" to id,
             "userId" to userId,
-            "expenseDate" to expenseDate,
+            "categoryId" to (categoryId ?: ""),
             "category" to category,
+            "expenseDate" to expenseDate,
+            "startTime" to (startTime ?: ""),
+            "endTime" to (endTime ?: ""),
             "description" to description,
-            "totalAmount" to totalAmount
+            "totalAmount" to totalAmount,
+            "photoUrl" to (photoUrl ?: ""),
+            "photoPath" to (photoPath ?: "")
         )
-
-        categoryId?.let { map["categoryId"] = it }
-        startTime?.let { map["startTime"] = it }
-        endTime?.let { map["endTime"] = it }
-        photoUrl?.let { map["photoUrl"] = it }
-        photoPath?.let { map["photoPath"] = it }
-
-        return map
     }
 
     // Helper to convert Timestamp to Date for compatibility

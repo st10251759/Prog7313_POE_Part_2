@@ -1,59 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:padding="8dp">
 
+        <!-- Badge Type Indicator -->
+        <TextView
+            android:id="@+id/tvBadgeType"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/circle_background"
+            android:gravity="center"
+            android:text="🔥"
+            android:textSize="10sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Badge Icon -->
         <ImageView
             android:id="@+id/ivBadgeIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_centerHorizontal="true"
+            android:layout_marginTop="4dp"
+            android:contentDescription="Badge Icon"
+            android:scaleType="centerInside"
             android:src="@drawable/ic_badge_default"
-            android:scaleType="centerInside"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvBadgeType" />
 
+        <!-- Lock Overlay for Unearned Badges -->
+        <View
+            android:id="@+id/viewBadgeOverlay"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#80000000"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/ivBadgeIcon"
+            app:layout_constraintEnd_toEndOf="@id/ivBadgeIcon"
+            app:layout_constraintStart_toStartOf="@id/ivBadgeIcon"
+            app:layout_constraintTop_toTopOf="@id/ivBadgeIcon" />
+
+        <!-- Lock Icon for Unearned Badges -->
+        <ImageView
+            android:id="@+id/ivLockIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="Locked"
+            android:src="@drawable/ic_lock"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/ivBadgeIcon"
+            app:layout_constraintEnd_toEndOf="@id/ivBadgeIcon"
+            app:layout_constraintStart_toStartOf="@id/ivBadgeIcon"
+            app:layout_constraintTop_toTopOf="@id/ivBadgeIcon"
+            app:tint="#FFFFFF" />
+
+        <!-- Badge Name -->
         <TextView
             android:id="@+id/tvBadgeName"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_below="@id/ivBadgeIcon"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="8dp"
-            android:text="Badge Name"
-            android:textSize="12sp"
-            android:textAlignment="center"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
             android:maxLines="2"
-            android:ellipsize="end"/>
+            android:text="First Steps"
+            android:textColor="@color/asparagus"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivBadgeIcon" />
 
+        <!-- Badge Points -->
         <TextView
             android:id="@+id/tvBadgePoints"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvBadgeName"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="4dp"
-            android:text="+50 pts"
+            android:layout_marginTop="2dp"
+            android:background="@drawable/points_background"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="+10 pts"
             android:textColor="@color/gold"
             android:textSize="10sp"
             android:textStyle="bold"
-            android:visibility="gone"/>
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvBadgeName" />
 
-        <!-- Overlay for locked badges -->
-        <View
-            android:id="@+id/viewBadgeOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#80FFFFFF"
-            android:visibility="gone"/>
-
-    </RelativeLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>

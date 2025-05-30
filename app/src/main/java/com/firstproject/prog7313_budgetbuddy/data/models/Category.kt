@@ -10,15 +10,12 @@ data class Category(
     val categoryName: String = "",
     val colour: String = ""
 ) {
-    // Empty constructor required for Firestore
-    constructor() : this("", "", "", "")
-
     fun toMap(): Map<String, Any> {
         return mapOf(
+            "id" to id,
             "userId" to userId,
             "categoryName" to categoryName,
             "colour" to colour
         )
     }
 }
-

@@ -28,4 +28,7 @@
 
     <color name="gold">#FFD700</color>
     <color name="gray">#808080</color>
+
+    <!-- Gamification Colors -->
+    <color name="light_gold">#FFF9E6</color>
 </resources>

@@ -12,11 +12,9 @@ data class BudgetGoal(
     val startDate: Timestamp = Timestamp.now(),
     val endDate: Timestamp = Timestamp.now()
 ) {
-    // Empty constructor required for Firestore
-    constructor() : this("", "", 0.0, 0.0, Timestamp.now(), Timestamp.now())
-
     fun toMap(): Map<String, Any> {
         return mapOf(
+            "id" to id,
             "userId" to userId,
             "minGoalAmount" to minGoalAmount,
             "maxGoalAmount" to maxGoalAmount,
@@ -24,6 +22,7 @@ data class BudgetGoal(
             "endDate" to endDate
         )
     }
+
 
     // Helper methods to convert Timestamp to Date for compatibility
     fun getStartDateAsDate(): Date {

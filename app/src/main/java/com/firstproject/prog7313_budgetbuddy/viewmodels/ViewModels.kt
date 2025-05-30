@@ -43,6 +43,54 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         setCurrentMonthDateRange()
     }
 
+    // Add these methods to your ViewModels class
+
+    // **NEW**: Initialize user streak if it doesn't exist
+    fun initializeUserStreak() = viewModelScope.launch {
+        val currentUserId = getCurrentUserId() ?: return@launch
+
+        try {
+            android.util.Log.d("ViewModels", "Initializing user streak for: $currentUserId")
+
+            // Check if streak already exists
+            val existingStreak = repository.getUserStreak(currentUserId)
+
+            if (existingStreak == null) {
+                // Create new streak with default values
+                val newStreak = UserStreak(
+                    id = currentUserId,
+                    userId = currentUserId,
+                    currentStreak = 0,
+                    longestStreak = 0,
+                    lastLogDate = com.google.firebase.Timestamp(Date(0)), // Set to epoch
+                    totalDaysLogged = 0,
+                    badges = emptyList(),
+                    points = 0,
+                    totalExpensesLogged = 0,
+                    categoriesUsed = emptyList(),
+                    earlyBirdCount = 0,
+                    weekendLogCount = 0,
+                    budgetKeeperDays = 0,
+                    perfectWeeks = 0,
+                    lastStreakBreak = null,
+                    achievements = emptyList()
+                )
+
+                repository.createOrUpdateUserStreak(newStreak)
+                android.util.Log.d("ViewModels", "New user streak initialized")
+            } else {
+                android.util.Log.d("ViewModels", "User streak already exists")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ViewModels", "Error initializing user streak", e)
+        }
+    }
+
+    // **NEW**: Get all available badges
+    fun getAllBadges(): List<Badge> {
+        return Badge.getAllBadges()
+    }
+
     // Helper function to set the date range to the current month
     private fun setCurrentMonthDateRange() {
         val calendar = Calendar.getInstance()
@@ -165,7 +213,7 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         return repository.getCurrentBudgetGoal(userId)
     }
 
-    // **MAIN METHOD**: Modified createExpense method to include streak update
+    // **ENHANCED**: Modified createExpense method with improved streak update
     fun createExpense(
         categoryId: String?,
         categoryName: String,
@@ -205,9 +253,9 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
             android.util.Log.d("ViewModels", "Inserting expense into Firestore")
             repository.insertExpense(expense)
 
-            // **CRITICAL**: Update user streak after successful expense creation
+            // **ENHANCED**: Update user streak with expense date and category info
             android.util.Log.d("ViewModels", "Updating user streak after expense log")
-            updateStreakOnExpenseLog()
+            updateStreakOnExpenseLog(expenseDate, categoryId)
 
         } catch (e: Exception) {
             android.util.Log.e("ViewModels", "Error creating expense", e)
@@ -255,30 +303,134 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         return repository.observeUserStreak(currentUserId)
     }
 
-    // Check if user has logged expense today
-    suspend fun hasLoggedExpenseToday(): Boolean {
-        val currentUserId = getCurrentUserId() ?: return false
-        return repository.hasLoggedExpenseToday(currentUserId)
-    }
 
-    // **CRITICAL METHOD**: Update streak when expense is created
-    private suspend fun updateStreakOnExpenseLog() {
+
+    // **ENHANCED**: Update streak method with additional parameters
+    private suspend fun updateStreakOnExpenseLog(expenseDate: Date, categoryId: String?) {
         val currentUserId = getCurrentUserId() ?: return
         android.util.Log.d("ViewModels", "Calling repository.updateUserStreakOnExpenseLog for user: $currentUserId")
-        repository.updateUserStreakOnExpenseLog(currentUserId)
+        repository.updateUserStreakOnExpenseLog(currentUserId, expenseDate, categoryId)
     }
 
-    // Get all available badges
-    fun getAllBadges(): List<Badge> {
-        return Badge.getAllBadges()
+    // **NEW**: Get achievement progress for different badge types
+    fun getAchievementProgress(): LiveData<Map<BadgeType, Float>> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyMap())
+        val result = MutableLiveData<Map<BadgeType, Float>>()
+
+        getUserStreak().observeForever { userStreak ->
+            if (userStreak != null) {
+                val progress = mutableMapOf<BadgeType, Float>()
+
+                // Calculate progress for each badge type
+                val allBadges = Badge.getAllBadges()
+                BadgeType.values().forEach { badgeType ->
+                    val badgesOfType = allBadges.filter { it.badgeType == badgeType }
+                    val nextBadge = badgesOfType.firstOrNull { badge ->
+                        !userStreak.badges.contains(badge.id)
+                    }
+
+                    if (nextBadge != null) {
+                        val currentValue = when (badgeType) {
+                            BadgeType.STREAK -> userStreak.currentStreak
+                            BadgeType.EXPENSE_COUNT -> userStreak.totalExpensesLogged
+                            BadgeType.CATEGORY_DIVERSITY -> userStreak.categoriesUsed.size
+                            BadgeType.EARLY_BIRD -> userStreak.earlyBirdCount
+                            BadgeType.WEEKEND_WARRIOR -> userStreak.weekendLogCount
+                            BadgeType.BUDGET_KEEPER -> userStreak.budgetKeeperDays
+                        }
+
+                        val requiredValue = when (badgeType) {
+                            BadgeType.STREAK -> nextBadge.requiredStreak
+                            else -> nextBadge.requiredValue
+                        }
+
+                        progress[badgeType] = (currentValue.toFloat() / requiredValue).coerceAtMost(1f)
+                    }
+                }
+
+                result.value = progress
+            }
+        }
+
+        return result
     }
 
-    // Initialize user streak if needed
-    fun initializeUserStreak() = viewModelScope.launch {
+    // **NEW**: Get next badge for each category
+    fun getNextBadges(): LiveData<List<Badge>> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(emptyList())
+        val result = MutableLiveData<List<Badge>>()
+
+        getUserStreak().observeForever { userStreak ->
+            if (userStreak != null) {
+                val allBadges = Badge.getAllBadges()
+                val earnedBadgeIds = userStreak.badges
+
+                // Find next badge for each type
+                val nextBadges = BadgeType.values().mapNotNull { badgeType ->
+                    allBadges.filter { it.badgeType == badgeType && !earnedBadgeIds.contains(it.id) }
+                        .minByOrNull {
+                            when (badgeType) {
+                                BadgeType.STREAK -> it.requiredStreak
+                                else -> it.requiredValue
+                            }
+                        }
+                }.take(3) // Show top 3 closest badges
+
+                result.value = nextBadges
+            }
+        }
+
+        return result
+    }
+
+    // **NEW**: Check if user can earn any badge right now
+    fun checkForImmediateBadges() = viewModelScope.launch {
         val currentUserId = getCurrentUserId() ?: return@launch
-        android.util.Log.d("ViewModels", "Initializing user streak for: $currentUserId")
-        repository.getUserStreak(currentUserId)
+        val userStreak = repository.getUserStreak(currentUserId) ?: return@launch
+
+        val newBadges = repository.checkForAllNewBadges(userStreak)
+        if (newBadges.isNotEmpty()) {
+            // Trigger badge notification or update
+            android.util.Log.d("ViewModels", "User can immediately earn ${newBadges.size} badges!")
+        }
     }
+
+    // **NEW**: Get detailed statistics for gamification screen
+    fun getDetailedStats(): LiveData<GamificationStats> {
+        val currentUserId = getCurrentUserId() ?: return MutableLiveData(GamificationStats())
+        val result = MutableLiveData<GamificationStats>()
+
+        getUserStreak().observeForever { userStreak ->
+            if (userStreak != null) {
+                val stats = GamificationStats(
+                    currentStreak = userStreak.currentStreak,
+                    longestStreak = userStreak.longestStreak,
+                    totalPoints = userStreak.points,
+                    totalExpenses = userStreak.totalExpensesLogged,
+                    categoriesUsed = userStreak.categoriesUsed.size,
+                    earlyBirdCount = userStreak.earlyBirdCount,
+                    weekendCount = userStreak.weekendLogCount,
+                    budgetKeeperDays = userStreak.budgetKeeperDays,
+                    perfectWeeks = userStreak.perfectWeeks,
+                    streakLevel = userStreak.getStreakLevel(),
+                    progressToNext = userStreak.getProgressToNextMilestone(),
+                    nextMilestone = userStreak.getNextStreakMilestone(),
+                    badges = userStreak.badges,
+                    achievements = userStreak.achievements
+                )
+                result.value = stats
+            }
+        }
+
+        return result
+    }
+
+    // **NEW**: Update budget keeper status when budget is checked
+    fun updateBudgetStatus(stayedUnderBudget: Boolean) = viewModelScope.launch {
+        val currentUserId = getCurrentUserId() ?: return@launch
+        repository.updateBudgetKeeperStatus(currentUserId, stayedUnderBudget)
+    }
+
 
     // ------------------------ Photo Methods ------------------------
 

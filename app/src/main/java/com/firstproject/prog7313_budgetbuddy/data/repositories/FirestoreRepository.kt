@@ -227,13 +227,20 @@ class FirestoreRepository {
         return result
     }
 
-    fun getExpensesByPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<Expense>> {
+    fun getExpensesByPeriod(
+        userId: String,
+        startDate: Date,
+        endDate: Date
+    ): LiveData<List<Expense>> {
         val result = MutableLiveData<List<Expense>>()
 
         val startTimestamp = Timestamp(startDate)
         val endTimestamp = Timestamp(endDate)
 
-        Log.d(TAG, "Setting up period expenses listener for user: $userId, from: $startDate to: $endDate")
+        Log.d(
+            TAG,
+            "Setting up period expenses listener for user: $userId, from: $startDate to: $endDate"
+        )
 
         // Simplified query to avoid index issues
         db.collection(EXPENSES_COLLECTION)
@@ -320,7 +327,11 @@ class FirestoreRepository {
         return result
     }
 
-    fun getTotalExpensesForPeriod(userId: String, startDate: Date, endDate: Date): LiveData<Double> {
+    fun getTotalExpensesForPeriod(
+        userId: String,
+        startDate: Date,
+        endDate: Date
+    ): LiveData<Double> {
         val result = MutableLiveData<Double>()
 
         val startTimestamp = Timestamp(startDate)
@@ -365,7 +376,11 @@ class FirestoreRepository {
         return result
     }
 
-    fun getCategorySpendingForPeriod(userId: String, startDate: Date, endDate: Date): LiveData<List<CategorySpending>> {
+    fun getCategorySpendingForPeriod(
+        userId: String,
+        startDate: Date,
+        endDate: Date
+    ): LiveData<List<CategorySpending>> {
         val result = MutableLiveData<List<CategorySpending>>()
 
         val startTimestamp = Timestamp(startDate)
@@ -376,7 +391,11 @@ class FirestoreRepository {
             .whereEqualTo("userId", userId)
             .addSnapshotListener { expenseSnapshot, expenseError ->
                 if (expenseError != null) {
-                    Log.e(TAG, "Error getting expenses for category spending: ${expenseError.message}", expenseError)
+                    Log.e(
+                        TAG,
+                        "Error getting expenses for category spending: ${expenseError.message}",
+                        expenseError
+                    )
                     result.value = emptyList()
                     return@addSnapshotListener
                 }
@@ -403,7 +422,8 @@ class FirestoreRepository {
 
                             // Group expenses by category and calculate totals
                             val categorySpending = categories.mapNotNull { category ->
-                                val categoryExpenses = periodExpenses.filter { it.categoryId == category.id }
+                                val categoryExpenses =
+                                    periodExpenses.filter { it.categoryId == category.id }
                                 if (categoryExpenses.isNotEmpty()) {
                                     val total = categoryExpenses.sumOf { it.totalAmount }
                                     CategorySpending(category, total)
@@ -569,7 +589,7 @@ class FirestoreRepository {
         }
     }
 
-    // ------------------------ Gamification Repository Methods ------------------------
+    // ------------------------ Enhanced Gamification Repository Methods ------------------------
 
     suspend fun getUserStreak(userId: String): UserStreak? {
         return try {
@@ -593,7 +613,15 @@ class FirestoreRepository {
                     lastLogDate = Timestamp(Date(0)), // Set to epoch to ensure first log counts
                     totalDaysLogged = 0,
                     badges = emptyList(),
-                    points = 0
+                    points = 0,
+                    totalExpensesLogged = 0,
+                    categoriesUsed = emptyList(),
+                    earlyBirdCount = 0,
+                    weekendLogCount = 0,
+                    budgetKeeperDays = 0,
+                    perfectWeeks = 0,
+                    lastStreakBreak = null,
+                    achievements = emptyList()
                 )
                 createOrUpdateUserStreak(newStreak)
                 newStreak
@@ -645,7 +673,7 @@ class FirestoreRepository {
         return result
     }
 
-    // Check if user has logged expense today
+    // **FIXED**: Check if user has logged expense today using calendar days, not 24-hour periods
     suspend fun hasLoggedExpenseToday(userId: String): Boolean {
         return try {
             val today = Calendar.getInstance().apply {
@@ -675,15 +703,18 @@ class FirestoreRepository {
         }
     }
 
-    // **MOST IMPORTANT METHOD**: Update streak when expense is logged
-    suspend fun updateUserStreakOnExpenseLog(userId: String): UserStreak? {
+    // **ENHANCED**: Better streak update logic with more accurate date handling
+    suspend fun updateUserStreakOnExpenseLog(userId: String, expenseDate: Date, categoryId: String?): UserStreak? {
         return try {
-            Log.d(TAG, "=== STARTING STREAK UPDATE FOR USER: $userId ===")
+            Log.d(TAG, "=== ENHANCED STREAK UPDATE START ===")
+            Log.d(TAG, "User: $userId, Expense Date: $expenseDate, Category: $categoryId")
 
             val currentStreak = getUserStreak(userId) ?: return null
-            Log.d(TAG, "Current streak data: currentStreak=${currentStreak.currentStreak}, longestStreak=${currentStreak.longestStreak}")
+            Log.d(TAG, "Current streak data loaded: ${currentStreak.currentStreak} days, ${currentStreak.totalExpensesLogged} expenses")
 
-            val today = Calendar.getInstance().apply {
+            // **FIXED**: Proper calendar day comparison
+            val expenseCalendar = Calendar.getInstance().apply {
+                time = expenseDate
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
@@ -698,56 +729,92 @@ class FirestoreRepository {
                 set(Calendar.MILLISECOND, 0)
             }
 
-            val daysDifference = ((today.timeInMillis - lastLogCalendar.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
-            Log.d(TAG, "Days difference: $daysDifference")
+            val daysDifference = ((expenseCalendar.timeInMillis - lastLogCalendar.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
+            Log.d(TAG, "Calendar days difference: $daysDifference")
+
+            // **ENHANCED**: Calculate gamification stats
+            val expenseHour = Calendar.getInstance().apply { time = expenseDate }.get(Calendar.HOUR_OF_DAY)
+            val isEarlyBird = expenseHour < 9
+            val isWeekend = Calendar.getInstance().apply { time = expenseDate }.get(Calendar.DAY_OF_WEEK) in listOf(Calendar.SATURDAY, Calendar.SUNDAY)
+
+            val newCategoriesUsed = if (categoryId != null && !currentStreak.categoriesUsed.contains(categoryId)) {
+                currentStreak.categoriesUsed + categoryId
+            } else {
+                currentStreak.categoriesUsed
+            }
+
+            Log.d(TAG, "Gamification stats: isEarlyBird=$isEarlyBird, isWeekend=$isWeekend, newCategories=${newCategoriesUsed.size}")
 
             val updatedStreak = when {
                 daysDifference == 0 -> {
-                    Log.d(TAG, "Already logged today, no change")
-                    // Already logged today, no change
-                    currentStreak
+                    Log.d(TAG, "Same day log - updating stats only")
+                    currentStreak.copy(
+                        totalExpensesLogged = currentStreak.totalExpensesLogged + 1,
+                        categoriesUsed = newCategoriesUsed,
+                        earlyBirdCount = if (isEarlyBird) currentStreak.earlyBirdCount + 1 else currentStreak.earlyBirdCount,
+                        weekendLogCount = if (isWeekend) currentStreak.weekendLogCount + 1 else currentStreak.weekendLogCount
+                    )
                 }
                 daysDifference == 1 -> {
-                    Log.d(TAG, "Consecutive day, incrementing streak")
-                    // Consecutive day, increment streak
+                    Log.d(TAG, "Consecutive day - incrementing streak")
+                    val newStreakCount = currentStreak.currentStreak + 1
                     currentStreak.copy(
-                        currentStreak = currentStreak.currentStreak + 1,
-                        longestStreak = maxOf(currentStreak.longestStreak, currentStreak.currentStreak + 1),
-                        lastLogDate = Timestamp.now(),
-                        totalDaysLogged = currentStreak.totalDaysLogged + 1
+                        currentStreak = newStreakCount,
+                        longestStreak = maxOf(currentStreak.longestStreak, newStreakCount),
+                        lastLogDate = Timestamp(expenseDate),
+                        totalDaysLogged = currentStreak.totalDaysLogged + 1,
+                        totalExpensesLogged = currentStreak.totalExpensesLogged + 1,
+                        categoriesUsed = newCategoriesUsed,
+                        earlyBirdCount = if (isEarlyBird) currentStreak.earlyBirdCount + 1 else currentStreak.earlyBirdCount,
+                        weekendLogCount = if (isWeekend) currentStreak.weekendLogCount + 1 else currentStreak.weekendLogCount
                     )
                 }
                 else -> {
-                    Log.d(TAG, "Streak broken, resetting to 1")
-                    // Streak broken, reset to 1
+                    Log.d(TAG, "Streak broken - resetting to 1")
                     currentStreak.copy(
                         currentStreak = 1,
-                        lastLogDate = Timestamp.now(),
-                        totalDaysLogged = currentStreak.totalDaysLogged + 1
+                        lastLogDate = Timestamp(expenseDate),
+                        lastStreakBreak = Timestamp.now(),
+                        totalDaysLogged = currentStreak.totalDaysLogged + 1,
+                        totalExpensesLogged = currentStreak.totalExpensesLogged + 1,
+                        categoriesUsed = newCategoriesUsed,
+                        earlyBirdCount = if (isEarlyBird) currentStreak.earlyBirdCount + 1 else currentStreak.earlyBirdCount,
+                        weekendLogCount = if (isWeekend) currentStreak.weekendLogCount + 1 else currentStreak.weekendLogCount
                     )
                 }
             }
 
-            // Check for new badges
-            val newBadges = checkForNewBadges(updatedStreak)
-            Log.d(TAG, "New badges earned: ${newBadges.size}")
+            // **ENHANCED**: Check for new badges with validation
+            val newBadges = checkForAllNewBadges(updatedStreak)
+            Log.d(TAG, "New badges to award: ${newBadges.map { it.name }}")
 
             val finalStreak = if (newBadges.isNotEmpty()) {
                 val allBadges = (updatedStreak.badges + newBadges.map { it.id }).distinct()
                 val bonusPoints = newBadges.sumOf { it.points }
-                Log.d(TAG, "Adding ${newBadges.size} badges and $bonusPoints points")
+
+                Log.d(TAG, "Awarding ${newBadges.size} badges worth $bonusPoints points")
+
+                // **NEW**: Add special achievements for multiple badges
+                val newAchievements = if (newBadges.size > 1) {
+                    updatedStreak.achievements + "multi_badge_${System.currentTimeMillis()}"
+                } else {
+                    updatedStreak.achievements
+                }
+
                 updatedStreak.copy(
                     badges = allBadges,
-                    points = updatedStreak.points + bonusPoints
+                    points = updatedStreak.points + bonusPoints,
+                    achievements = newAchievements
                 )
             } else {
                 updatedStreak
             }
 
-            Log.d(TAG, "Final streak: currentStreak=${finalStreak.currentStreak}, longestStreak=${finalStreak.longestStreak}, points=${finalStreak.points}")
+            Log.d(TAG, "Final streak: ${finalStreak.currentStreak} days, ${finalStreak.points} points, ${finalStreak.badges.size} badges")
 
             createOrUpdateUserStreak(finalStreak)
-            Log.d(TAG, "=== STREAK UPDATE COMPLETED ===")
+            Log.d(TAG, "=== ENHANCED STREAK UPDATE COMPLETE ===")
+
             finalStreak
         } catch (e: Exception) {
             Log.e(TAG, "Error updating user streak: ${e.message}", e)
@@ -755,18 +822,87 @@ class FirestoreRepository {
         }
     }
 
-    private fun checkForNewBadges(userStreak: UserStreak): List<Badge> {
+    // **FIXED**: More accurate badge checking with better validation
+    fun checkForAllNewBadges(userStreak: UserStreak): List<Badge> {
         val allBadges = Badge.getAllBadges()
         val earnedBadgeIds = userStreak.badges
         val newBadges = mutableListOf<Badge>()
 
+        Log.d(TAG, "Checking badges for user with streak: ${userStreak.currentStreak}, expenses: ${userStreak.totalExpensesLogged}")
+
         for (badge in allBadges) {
-            if (!earnedBadgeIds.contains(badge.id) && userStreak.currentStreak >= badge.requiredStreak) {
-                Log.d(TAG, "New badge earned: ${badge.name} (required: ${badge.requiredStreak}, current: ${userStreak.currentStreak})")
-                newBadges.add(badge)
+            if (!earnedBadgeIds.contains(badge.id)) {
+                val isEarned = when (badge.badgeType) {
+                    BadgeType.STREAK -> {
+                        val earned = userStreak.currentStreak >= badge.requiredStreak
+                        Log.d(TAG, "Streak badge ${badge.id}: current=${userStreak.currentStreak}, required=${badge.requiredStreak}, earned=$earned")
+                        earned
+                    }
+                    BadgeType.EXPENSE_COUNT -> {
+                        val earned = userStreak.totalExpensesLogged >= badge.requiredValue
+                        Log.d(TAG, "Expense badge ${badge.id}: current=${userStreak.totalExpensesLogged}, required=${badge.requiredValue}, earned=$earned")
+                        earned
+                    }
+                    BadgeType.CATEGORY_DIVERSITY -> {
+                        val earned = userStreak.categoriesUsed.size >= badge.requiredValue
+                        Log.d(TAG, "Category badge ${badge.id}: current=${userStreak.categoriesUsed.size}, required=${badge.requiredValue}, earned=$earned")
+                        earned
+                    }
+                    BadgeType.EARLY_BIRD -> {
+                        val earned = userStreak.earlyBirdCount >= badge.requiredValue
+                        Log.d(TAG, "Early bird badge ${badge.id}: current=${userStreak.earlyBirdCount}, required=${badge.requiredValue}, earned=$earned")
+                        earned
+                    }
+                    BadgeType.WEEKEND_WARRIOR -> {
+                        val earned = userStreak.weekendLogCount >= badge.requiredValue
+                        Log.d(TAG, "Weekend badge ${badge.id}: current=${userStreak.weekendLogCount}, required=${badge.requiredValue}, earned=$earned")
+                        earned
+                    }
+                    BadgeType.BUDGET_KEEPER -> {
+                        val earned = userStreak.budgetKeeperDays >= badge.requiredValue
+                        Log.d(TAG, "Budget badge ${badge.id}: current=${userStreak.budgetKeeperDays}, required=${badge.requiredValue}, earned=$earned")
+                        earned
+                    }
+                }
+
+                if (isEarned) {
+                    Log.i(TAG, "🏆 NEW BADGE EARNED: ${badge.name} (${badge.badgeType}, ${badge.points} points)")
+                    newBadges.add(badge)
+                }
             }
         }
 
+        Log.d(TAG, "Badge check complete: ${newBadges.size} new badges earned")
         return newBadges
+    }
+
+    // **NEW**: Method to update budget keeper status
+    suspend fun updateBudgetKeeperStatus(userId: String, stayedUnderBudget: Boolean) {
+        try {
+            val currentStreak = getUserStreak(userId) ?: return
+
+            if (stayedUnderBudget) {
+                val updatedStreak = currentStreak.copy(
+                    budgetKeeperDays = currentStreak.budgetKeeperDays + 1
+                )
+
+                // Check for budget-related badges
+                val newBadges = checkForAllNewBadges(updatedStreak)
+                val finalStreak = if (newBadges.isNotEmpty()) {
+                    val allBadges = (updatedStreak.badges + newBadges.map { it.id }).distinct()
+                    val bonusPoints = newBadges.sumOf { it.points }
+                    updatedStreak.copy(
+                        badges = allBadges,
+                        points = updatedStreak.points + bonusPoints
+                    )
+                } else {
+                    updatedStreak
+                }
+
+                createOrUpdateUserStreak(finalStreak)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating budget keeper status: ${e.message}", e)
+        }
     }
 }

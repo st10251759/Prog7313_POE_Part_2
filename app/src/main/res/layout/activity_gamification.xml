@@ -265,6 +265,51 @@
                         android:textSize="12sp"
                         android:layout_gravity="end"/>
 
+                    <!-- Add these new TextViews to show additional stats -->
+                    <TextView
+                        android:id="@+id/tvStreakLevel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Newcomer"
+                        android:textColor="@color/asparagus"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvTotalExpenses"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📝 0 expenses logged"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvCategoriesUsed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🏷️ 0 categories used"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvEarlyBirdCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🌅 0 early bird logs"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvWeekendCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎉 0 weekend logs"
+                        android:textSize="12sp" />
+
+                    <ProgressBar
+                        android:id="@+id/progressBarOverall"
+                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="6dp"
+                        android:progress="0" />
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
