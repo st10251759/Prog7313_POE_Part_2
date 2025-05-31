@@ -274,7 +274,7 @@ class AddExpenseActivity : BaseActivity() {
                 )
                 noCategoriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 categorySpinner.adapter = noCategoriesAdapter
-                Toast.makeText(this, "Please create a category first", Toast.LENGTH_SHORT).show()
+
                 return@observe
             }
 
@@ -537,13 +537,13 @@ class AddExpenseActivity : BaseActivity() {
             return
         }
 
-        // **FIX**: Disable save button to prevent double submission
+        // Disable save button to prevent double submission
         btnSaveExpense.isEnabled = false
         btnSaveExpense.text = "Saving..."
 
         Log.i(TAG, "Creating new expense with amount: $amount, description: $description, category: $selectedCategoryName")
 
-        // **CRITICAL FIX**: Always create the expense first, then handle photo upload separately
+        //  Always create the expense first, then handle photo upload separately
         // This ensures gamification updates happen regardless of photo upload success/failure
         viewModel.createExpenseWithSeparatePhotoUpload(
             categoryId = selectedCategoryId,
