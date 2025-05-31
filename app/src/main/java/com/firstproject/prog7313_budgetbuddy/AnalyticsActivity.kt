@@ -35,14 +35,14 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AnalyticsActivity : AppCompatActivity() {
+class AnalyticsActivity : BaseActivity() {
 
     private lateinit var viewModel: ViewModels
     private lateinit var auth: FirebaseAuth
 
     // UI Components
     private lateinit var btnBack: ImageButton
-    private lateinit var btnRefresh: ImageButton
+    private lateinit var btnThemeToggle: ImageButton
     private lateinit var tvTotalSpent: TextView
     private lateinit var tvDailyAverage: TextView
     private lateinit var tvBudgetStatus: TextView
@@ -121,7 +121,7 @@ class AnalyticsActivity : AppCompatActivity() {
 
     private fun initializeUI() {
         btnBack = findViewById(R.id.btnBack)
-        btnRefresh = findViewById(R.id.btnRefresh)
+        btnThemeToggle = findViewById(R.id.btnThemeToggle)
         tvTotalSpent = findViewById(R.id.tvTotalSpent)
         tvDailyAverage = findViewById(R.id.tvDailyAverage)
         tvBudgetStatus = findViewById(R.id.tvBudgetStatus)
@@ -155,6 +155,8 @@ class AnalyticsActivity : AppCompatActivity() {
 
         setupCharts()
         updateSelectedDateRange()
+
+        setupThemeToggle(btnThemeToggle)
     }
 
     private fun setupCharts() {
@@ -294,7 +296,7 @@ class AnalyticsActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnBack.setOnClickListener { finish() }
-        btnRefresh.setOnClickListener { loadData() }
+
 
         // Period selection
         btnWeekPeriod.setOnClickListener { selectPeriod(TimePeriod.WEEK) }

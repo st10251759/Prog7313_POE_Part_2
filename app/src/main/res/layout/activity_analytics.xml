@@ -38,12 +38,12 @@
             android:textStyle="bold" />
 
         <ImageButton
-            android:id="@+id/btnRefresh"
+            android:id="@+id/btnThemeToggle"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_refresh"
-            android:contentDescription="Refresh"
+            android:src="@drawable/ic_lightbulb"
+            android:contentDescription="Toggle Theme"
             app:tint="#3CB371" />
     </LinearLayout>
 
@@ -339,7 +339,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Budget Range:"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="@color/text_primary"
                             android:textSize="14sp" />
 
                         <View
