@@ -881,7 +881,8 @@ class AnalyticsActivity : BaseActivity() {
             val percentage = (categoryTotal / totalAmount * 100).toFloat()
 
             if (percentage >= 0.5f) { // Only show categories with at least 0.5%
-                entries.add(PieEntry(categoryTotal.toFloat(), category))
+                // Remove category name from PieEntry to avoid showing it on the chart
+                entries.add(PieEntry(categoryTotal.toFloat()))
             }
         }
 
@@ -901,19 +902,21 @@ class AnalyticsActivity : BaseActivity() {
 
         val dataSet = PieDataSet(entries, "").apply {
             setColors(customColors)
-            valueTextColor = Color.WHITE
-            valueTextSize = 11f
-            valueFormatter = object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String {
-                    val percentage = value / totalAmount.toFloat() * 100
-                    return if (percentage >= 5f) "${percentage.toInt()}%" else ""
-                }
-            }
+            valueTextColor = Color.TRANSPARENT // Hide all text on pie slices
+            valueTextSize = 0f // Set text size to 0 to completely hide values
+            setDrawValues(false) // Completely disable drawing values on slices
             sliceSpace = 2f
             selectionShift = 8f
         }
 
-        // Move legend below the chart
+        // Configure pie chart to not show entry labels
+        pieChart.apply {
+            setDrawEntryLabels(false) // This removes category names from pie slices
+            setEntryLabelColor(Color.TRANSPARENT) // Make entry labels transparent as backup
+            setEntryLabelTextSize(0f) // Set entry label text size to 0
+        }
+
+        // Move legend below the chart with percentages
         pieChart.legend.apply {
             isEnabled = true
             orientation = com.github.mikephil.charting.components.Legend.LegendOrientation.HORIZONTAL
@@ -923,12 +926,24 @@ class AnalyticsActivity : BaseActivity() {
             textSize = 10f
             isWordWrapEnabled = true
 
-            // Custom legend labels with percentages
+            // Create custom legend labels with percentages
             val legendLabels = mutableListOf<String>()
-            entries.forEach { entry ->
-                val percentage = entry.value / totalAmount.toFloat() * 100
-                legendLabels.add("${entry.label} (${percentage.toInt()}%)")
+            val categoriesWithPercentages = mutableListOf<Pair<String, Float>>()
+
+            // Rebuild the category data for legend since we removed labels from entries
+            sortedCategories.forEach { (category, expenses) ->
+                val categoryTotal = expenses.sumOf { it.totalAmount }
+                val percentage = (categoryTotal / totalAmount * 100).toFloat()
+
+                if (percentage >= 0.5f) {
+                    categoriesWithPercentages.add(Pair(category, percentage))
+                }
             }
+
+            categoriesWithPercentages.forEachIndexed { index, (category, percentage) ->
+                legendLabels.add("$category (${percentage.toInt()}%)")
+            }
+
             setCustom(legendLabels.mapIndexed { index, label ->
                 com.github.mikephil.charting.components.LegendEntry().apply {
                     this.label = label

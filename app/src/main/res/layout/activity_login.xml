@@ -132,17 +132,6 @@
                     android:textColorHint="#AAAAAA" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:id="@+id/tvForgotPassword"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Forgot password?"
-                android:textColor="@color/olivine"
-                android:textSize="14sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tilPassword" />
-
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnLogin"
                 android:layout_width="0dp"
@@ -161,7 +150,7 @@
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvForgotPassword" />
+                app:layout_constraintTop_toBottomOf="@+id/tilPassword" />
 
             <LinearLayout
                 android:id="@+id/linearLayout"
@@ -178,8 +167,6 @@
                     android:layout_height="1dp"
                     android:layout_gravity="center_vertical"
                     android:background="#DDDDDD" />
-
-
 
                 <View
                     android:layout_width="80dp"
