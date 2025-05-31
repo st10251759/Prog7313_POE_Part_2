@@ -136,20 +136,51 @@ class GamificationActivity : BaseActivity() {
 
     // **FIXED**: Proper initialization sequence
     private fun initializeUserData() {
+        Log.d(TAG, "=== INITIALIZING USER DATA ===")
+
+        // **STEP 1**: Ensure user streak is initialized
         viewModel.initializeUserStreak()
 
-        // Wait a moment for initialization, then load data
+        // **STEP 2**: Set up observers with proper error handling
+        setupStreakObserver()
+
+        // **STEP 3**: Load additional data
+        loadDetailedStats()
+    }
+
+    private fun setupStreakObserver() {
         viewModel.getUserStreak().observe(this) { userStreak ->
-            if (userStreak != null) {
-                Log.d(TAG, "User streak loaded: ${userStreak.currentStreak} days")
-                updateStreakDisplay(userStreak)
-                updateBadgeDisplay(userStreak)
-                checkTodayStatus(userStreak)
-                loadDetailedStats()
-            } else {
-                Log.d(TAG, "User streak is null, showing defaults")
+            try {
+                if (userStreak != null) {
+                    Log.d(TAG, "✅ User streak loaded: ${userStreak.currentStreak} days, ${userStreak.totalExpensesLogged} expenses")
+                    updateStreakDisplay(userStreak)
+                    updateBadgeDisplay(userStreak)
+                    checkTodayStatus(userStreak)
+
+                    // **NEW**: Force UI refresh after data update
+                    refreshUIComponents()
+                } else {
+                    Log.d(TAG, "⚠️ User streak is null, showing defaults")
+                    showDefaultState()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error in streak observer: ${e.message}", e)
                 showDefaultState()
             }
+        }
+    }
+
+    private fun refreshUIComponents() {
+        try {
+            // Force RecyclerView to refresh
+            rvBadges.adapter?.notifyDataSetChanged()
+
+            // Trigger layout refresh
+            rvBadges.invalidate()
+
+            Log.d(TAG, "UI components refreshed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error refreshing UI: ${e.message}", e)
         }
     }
 
@@ -218,21 +249,30 @@ class GamificationActivity : BaseActivity() {
     }
 
     private fun updateStreakDisplay(userStreak: UserStreak) {
-        // **FIXED**: Safe string conversion and validation
-        tvCurrentStreak.text = userStreak.currentStreak.toString()
-        tvLongestStreak.text = userStreak.longestStreak.toString()
-        tvTotalPoints.text = "${userStreak.points} pts"
+        try {
+            Log.d(TAG, "Updating streak display with: streak=${userStreak.currentStreak}, points=${userStreak.points}")
 
-        // **ENHANCED**: Dynamic streak level display
-        val streakLevel = userStreak.getStreakLevel()
-        tvStreakLevel.text = streakLevel
+            // **FIXED**: Safe string conversion and validation
+            tvCurrentStreak.text = userStreak.currentStreak.toString()
+            tvLongestStreak.text = userStreak.longestStreak.toString()
+            tvTotalPoints.text = "${userStreak.points} pts"
 
-        // **IMPROVED**: More encouraging messages
-        tvStreakMessage.text = getStreakMessage(userStreak.currentStreak)
+            // **ENHANCED**: Dynamic streak level display
+            val streakLevel = userStreak.getStreakLevel()
+            tvStreakLevel.text = streakLevel
 
-        // **ENHANCED**: Animated streak number
-        animateStreakNumber(userStreak.currentStreak)
+            // **IMPROVED**: More encouraging messages
+            tvStreakMessage.text = getStreakMessage(userStreak.currentStreak)
+
+            // **ENHANCED**: Animated streak number
+            animateStreakNumber(userStreak.currentStreak)
+
+            Log.d(TAG, "Streak display updated successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating streak display: ${e.message}", e)
+        }
     }
+
 
     // **FIXED**: Accurate streak messages
     private fun getStreakMessage(currentStreak: Int): String {
@@ -303,17 +343,25 @@ class GamificationActivity : BaseActivity() {
     }
 
     private fun updateBadgeDisplay(userStreak: UserStreak) {
-        val allBadges = viewModel.getAllBadges()
-        val earnedBadges = userStreak.badges
+        try {
+            val allBadges = viewModel.getAllBadges()
+            val earnedBadges = userStreak.badges
 
-        Log.d(TAG, "Updating badge display: ${earnedBadges.size}/${allBadges.size} badges earned")
+            Log.d(TAG, "Updating badge display: ${earnedBadges.size}/${allBadges.size} badges earned")
+            Log.d(TAG, "Earned badges: $earnedBadges")
 
-        // Update badge grid
-        badgeAdapter.updateBadges(allBadges, earnedBadges)
+            // Update badge grid
+            badgeAdapter.updateBadges(allBadges, earnedBadges)
 
-        // **ENHANCED**: Show progress for the closest badge
-        updateNextBadgeProgress(userStreak, allBadges, earnedBadges)
+            // **ENHANCED**: Show progress for the closest badge
+            updateNextBadgeProgress(userStreak, allBadges, earnedBadges)
+
+            Log.d(TAG, "Badge display updated successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating badge display: ${e.message}", e)
+        }
     }
+
 
     // **FIXED**: More accurate next badge progress calculation
     private fun updateNextBadgeProgress(userStreak: UserStreak, allBadges: List<Badge>, earnedBadges: List<String>) {
@@ -580,16 +628,36 @@ class GamificationActivity : BaseActivity() {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
+    // **ENHANCED**: Better onResume with data refresh
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "Activity resumed, refreshing data")
+        Log.d(TAG, "=== ACTIVITY RESUMED ===")
 
-        // **ENHANCED**: Refresh all data when returning to screen
-        initializeUserData()
-
-        // **NEW**: Check for immediate badge opportunities
-        viewModel.checkForImmediateBadges()
+        // **ENHANCED**: Force refresh all data when returning to screen
+        refreshAllData()
     }
+
+    private fun refreshAllData() {
+        try {
+            Log.d(TAG, "Refreshing all gamification data")
+
+            // Re-initialize user data
+            initializeUserData()
+
+            // Check for immediate badge opportunities
+            viewModel.checkForImmediateBadges()
+
+            // Force UI refresh after a short delay to ensure data is loaded
+            rvBadges.postDelayed({
+                refreshUIComponents()
+            }, 500)
+
+            Log.d(TAG, "Data refresh completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error refreshing data: ${e.message}", e)
+        }
+    }
+
 
     override fun onPause() {
         super.onPause()

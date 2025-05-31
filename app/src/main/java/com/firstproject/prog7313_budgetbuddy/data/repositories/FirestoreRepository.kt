@@ -593,7 +593,9 @@ class FirestoreRepository {
 
     suspend fun getUserStreak(userId: String): UserStreak? {
         return try {
-            Log.d(TAG, "Getting user streak for: $userId")
+            Log.d(TAG, "=== GETTING USER STREAK ===")
+            Log.d(TAG, "User ID: $userId")
+
             val doc = db.collection(USER_STREAKS_COLLECTION)
                 .document(userId)
                 .get()
@@ -601,10 +603,12 @@ class FirestoreRepository {
 
             if (doc.exists()) {
                 Log.d(TAG, "Found existing streak document")
-                doc.toObject(UserStreak::class.java)?.apply { id = doc.id }
+                val streak = doc.toObject(UserStreak::class.java)?.apply { id = doc.id }
+                Log.d(TAG, "Loaded streak: ${streak?.currentStreak} days, ${streak?.totalExpensesLogged} expenses")
+                streak
             } else {
                 Log.d(TAG, "No streak document found, creating new one")
-                // Create new streak record if doesn't exist
+                // **FIX**: Create new streak record with immediate save
                 val newStreak = UserStreak(
                     id = userId,
                     userId = userId,
@@ -623,7 +627,10 @@ class FirestoreRepository {
                     lastStreakBreak = null,
                     achievements = emptyList()
                 )
+
+                // **CRITICAL**: Save the new streak immediately
                 createOrUpdateUserStreak(newStreak)
+                Log.d(TAG, "New streak created and saved")
                 newStreak
             }
         } catch (e: Exception) {
@@ -634,17 +641,22 @@ class FirestoreRepository {
 
     suspend fun createOrUpdateUserStreak(userStreak: UserStreak) {
         try {
-            Log.d(TAG, "Creating/updating user streak for: ${userStreak.userId}")
+            Log.d(TAG, "=== CREATING/UPDATING USER STREAK ===")
+            Log.d(TAG, "User: ${userStreak.userId}, Streak: ${userStreak.currentStreak}, Expenses: ${userStreak.totalExpensesLogged}")
+
+            // **FIX**: Use set with merge to handle both create and update cases
             db.collection(USER_STREAKS_COLLECTION)
                 .document(userStreak.userId)
-                .set(userStreak.toMap())
+                .set(userStreak.toMap(), com.google.firebase.firestore.SetOptions.merge())
                 .await()
-            Log.d(TAG, "User streak updated successfully")
+
+            Log.d(TAG, "User streak saved successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error updating user streak: ${e.message}", e)
             throw e
         }
     }
+
 
     fun observeUserStreak(userId: String): LiveData<UserStreak?> {
         val result = MutableLiveData<UserStreak?>()
@@ -703,16 +715,24 @@ class FirestoreRepository {
         }
     }
 
-    // **ENHANCED**: Better streak update logic with more accurate date handling
+
+
+    // **COMPLETELY REWRITTEN**: Enhanced streak update logic with better error handling
     suspend fun updateUserStreakOnExpenseLog(userId: String, expenseDate: Date, categoryId: String?): UserStreak? {
         return try {
             Log.d(TAG, "=== ENHANCED STREAK UPDATE START ===")
             Log.d(TAG, "User: $userId, Expense Date: $expenseDate, Category: $categoryId")
 
-            val currentStreak = getUserStreak(userId) ?: return null
-            Log.d(TAG, "Current streak data loaded: ${currentStreak.currentStreak} days, ${currentStreak.totalExpensesLogged} expenses")
+            // **STEP 1**: Get or create user streak
+            var currentStreak = getUserStreak(userId)
+            if (currentStreak == null) {
+                Log.e(TAG, "Failed to get or create user streak")
+                return null
+            }
 
-            // **FIXED**: Proper calendar day comparison
+            Log.d(TAG, "Current streak loaded: ${currentStreak.currentStreak} days, ${currentStreak.totalExpensesLogged} expenses")
+
+            // **STEP 2**: Calculate calendar day difference
             val expenseCalendar = Calendar.getInstance().apply {
                 time = expenseDate
                 set(Calendar.HOUR_OF_DAY, 0)
@@ -732,7 +752,7 @@ class FirestoreRepository {
             val daysDifference = ((expenseCalendar.timeInMillis - lastLogCalendar.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
             Log.d(TAG, "Calendar days difference: $daysDifference")
 
-            // **ENHANCED**: Calculate gamification stats
+            // **STEP 3**: Calculate gamification stats
             val expenseHour = Calendar.getInstance().apply { time = expenseDate }.get(Calendar.HOUR_OF_DAY)
             val isEarlyBird = expenseHour < 9
             val isWeekend = Calendar.getInstance().apply { time = expenseDate }.get(Calendar.DAY_OF_WEEK) in listOf(Calendar.SATURDAY, Calendar.SUNDAY)
@@ -745,6 +765,7 @@ class FirestoreRepository {
 
             Log.d(TAG, "Gamification stats: isEarlyBird=$isEarlyBird, isWeekend=$isWeekend, newCategories=${newCategoriesUsed.size}")
 
+            // **STEP 4**: Calculate new streak values based on day difference
             val updatedStreak = when {
                 daysDifference == 0 -> {
                     Log.d(TAG, "Same day log - updating stats only")
@@ -769,6 +790,15 @@ class FirestoreRepository {
                         weekendLogCount = if (isWeekend) currentStreak.weekendLogCount + 1 else currentStreak.weekendLogCount
                     )
                 }
+                daysDifference < 0 -> {
+                    Log.d(TAG, "Expense in the past - updating stats only")
+                    currentStreak.copy(
+                        totalExpensesLogged = currentStreak.totalExpensesLogged + 1,
+                        categoriesUsed = newCategoriesUsed,
+                        earlyBirdCount = if (isEarlyBird) currentStreak.earlyBirdCount + 1 else currentStreak.earlyBirdCount,
+                        weekendLogCount = if (isWeekend) currentStreak.weekendLogCount + 1 else currentStreak.weekendLogCount
+                    )
+                }
                 else -> {
                     Log.d(TAG, "Streak broken - resetting to 1")
                     currentStreak.copy(
@@ -784,17 +814,17 @@ class FirestoreRepository {
                 }
             }
 
-            // **ENHANCED**: Check for new badges with validation
+            // **STEP 5**: Check for new badges with validation
             val newBadges = checkForAllNewBadges(updatedStreak)
             Log.d(TAG, "New badges to award: ${newBadges.map { it.name }}")
 
+            // **STEP 6**: Apply badge rewards
             val finalStreak = if (newBadges.isNotEmpty()) {
                 val allBadges = (updatedStreak.badges + newBadges.map { it.id }).distinct()
                 val bonusPoints = newBadges.sumOf { it.points }
 
                 Log.d(TAG, "Awarding ${newBadges.size} badges worth $bonusPoints points")
 
-                // **NEW**: Add special achievements for multiple badges
                 val newAchievements = if (newBadges.size > 1) {
                     updatedStreak.achievements + "multi_badge_${System.currentTimeMillis()}"
                 } else {
@@ -812,6 +842,7 @@ class FirestoreRepository {
 
             Log.d(TAG, "Final streak: ${finalStreak.currentStreak} days, ${finalStreak.points} points, ${finalStreak.badges.size} badges")
 
+            // **STEP 7**: Save updated streak
             createOrUpdateUserStreak(finalStreak)
             Log.d(TAG, "=== ENHANCED STREAK UPDATE COMPLETE ===")
 

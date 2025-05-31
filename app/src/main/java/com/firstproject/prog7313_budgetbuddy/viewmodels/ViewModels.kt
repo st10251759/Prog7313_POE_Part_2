@@ -308,8 +308,44 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
     // **ENHANCED**: Update streak method with additional parameters
     private suspend fun updateStreakOnExpenseLog(expenseDate: Date, categoryId: String?) {
         val currentUserId = getCurrentUserId() ?: return
-        android.util.Log.d("ViewModels", "Calling repository.updateUserStreakOnExpenseLog for user: $currentUserId")
-        repository.updateUserStreakOnExpenseLog(currentUserId, expenseDate, categoryId)
+
+        try {
+            android.util.Log.d("ViewModels", "=== UPDATING STREAK ON EXPENSE LOG ===")
+            android.util.Log.d("ViewModels", "User: $currentUserId, Date: $expenseDate, Category: $categoryId")
+
+            // **FIX**: Add retry logic for streak updates
+            var retryCount = 0
+            val maxRetries = 3
+
+            while (retryCount < maxRetries) {
+                try {
+                    val result = repository.updateUserStreakOnExpenseLog(currentUserId, expenseDate, categoryId)
+                    if (result != null) {
+                        android.util.Log.d("ViewModels", "Streak update successful on attempt ${retryCount + 1}")
+                        android.util.Log.d("ViewModels", "New streak: ${result.currentStreak} days, ${result.totalExpensesLogged} expenses")
+                        break
+                    } else {
+                        throw Exception("Streak update returned null")
+                    }
+                } catch (e: Exception) {
+                    retryCount++
+                    android.util.Log.w("ViewModels", "Streak update attempt $retryCount failed: ${e.message}")
+
+                    if (retryCount >= maxRetries) {
+                        android.util.Log.e("ViewModels", "Streak update failed after $maxRetries attempts")
+                        throw e
+                    } else {
+                        // Wait before retry
+                        kotlinx.coroutines.delay(1000L * retryCount)
+                    }
+                }
+            }
+
+            android.util.Log.d("ViewModels", "=== STREAK UPDATE COMPLETED ===")
+        } catch (e: Exception) {
+            android.util.Log.e("ViewModels", "Critical error updating streak: ${e.message}", e)
+            // Don't throw here - we don't want to prevent expense creation due to streak update issues
+        }
     }
 
     // **NEW**: Get achievement progress for different badge types
@@ -665,6 +701,8 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         return repository.getBudgetGoalForDate(currentUserId, date)
     }
 
+
+
     /**
      * Gets budget goal progress - comparing current spending to min/max goals
      * Returns a Triple of (currentAmount, minGoal, maxGoal)
@@ -700,6 +738,130 @@ class ViewModels(application: Application) : AndroidViewModel(application) {
         }
 
         return result
+    }
+
+    fun createExpenseWithSeparatePhotoUpload(
+        categoryId: String?,
+        categoryName: String,
+        expenseDate: Date,
+        startTime: String?,
+        endTime: String?,
+        description: String,
+        amount: Double,
+        photoPath: String? = null,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) = viewModelScope.launch {
+        val currentUserId = getCurrentUserId()
+        if (currentUserId == null) {
+            onError("User not authenticated")
+            return@launch
+        }
+
+        try {
+            android.util.Log.d("ViewModels", "=== CREATING EXPENSE WITH SEPARATE PHOTO UPLOAD ===")
+            android.util.Log.d("ViewModels", "User: $currentUserId, Amount: $amount, Photo: ${photoPath != null}")
+
+            // **STEP 1**: Create expense WITHOUT photo first (this ensures gamification always works)
+            val expense = Expense(
+                userId = currentUserId,
+                categoryId = categoryId,
+                category = categoryName,
+                expenseDate = Timestamp(expenseDate),
+                startTime = startTime,
+                endTime = endTime,
+                description = description,
+                totalAmount = amount,
+                photoUrl = null, // Will be updated later if photo upload succeeds
+                photoPath = photoPath
+            )
+
+            android.util.Log.d("ViewModels", "Step 1: Inserting expense into Firestore")
+            val expenseId = repository.insertExpense(expense)
+            android.util.Log.d("ViewModels", "Step 1: Expense created with ID: $expenseId")
+
+            // **STEP 2**: Update gamification IMMEDIATELY after expense creation
+            android.util.Log.d("ViewModels", "Step 2: Updating gamification streak")
+            updateStreakOnExpenseLog(expenseDate, categoryId)
+            android.util.Log.d("ViewModels", "Step 2: Gamification update completed")
+
+            // **STEP 3**: Handle photo upload separately (if fails, expense still exists)
+            if (!photoPath.isNullOrEmpty()) {
+                android.util.Log.d("ViewModels", "Step 3: Starting photo upload")
+
+                // Launch photo upload in separate coroutine so it doesn't block
+                launch {
+                    try {
+                        val photoUrl = repository.uploadPhoto(photoPath, currentUserId)
+                        if (photoUrl != null) {
+                            android.util.Log.d("ViewModels", "Step 3a: Photo uploaded successfully: $photoUrl")
+
+                            // Update expense with photo URL
+                            val updatedExpense = expense.copy(
+                                id = expenseId,
+                                photoUrl = photoUrl
+                            )
+                            repository.updateExpense(updatedExpense)
+                            android.util.Log.d("ViewModels", "Step 3b: Expense updated with photo URL")
+                        } else {
+                            android.util.Log.w("ViewModels", "Step 3: Photo upload failed, but expense was still created")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("ViewModels", "Step 3: Photo upload error (expense still exists): ${e.message}", e)
+                        // Don't call onError here since the expense was created successfully
+                    }
+                }
+            } else {
+                android.util.Log.d("ViewModels", "Step 3: No photo to upload")
+            }
+
+            // **STEP 4**: Return success immediately (don't wait for photo upload)
+            android.util.Log.d("ViewModels", "=== EXPENSE CREATION COMPLETED SUCCESSFULLY ===")
+            onSuccess()
+
+        } catch (e: Exception) {
+            android.util.Log.e("ViewModels", "Error in createExpenseWithSeparatePhotoUpload", e)
+            onError(e.message ?: "Unknown error occurred")
+        }
+    }
+
+
+    // Debug method to check current streak status
+    fun debugStreakStatus() = viewModelScope.launch {
+        val currentUserId = getCurrentUserId() ?: return@launch
+
+        try {
+            android.util.Log.d("ViewModels", "=== DEBUG STREAK STATUS ===")
+
+            val streak = repository.getUserStreak(currentUserId)
+            if (streak != null) {
+                android.util.Log.d("ViewModels", "Current streak: ${streak.currentStreak}")
+                android.util.Log.d("ViewModels", "Total expenses: ${streak.totalExpensesLogged}")
+                android.util.Log.d("ViewModels", "Points: ${streak.points}")
+                android.util.Log.d("ViewModels", "Badges: ${streak.badges}")
+                android.util.Log.d("ViewModels", "Last log date: ${streak.getLastLogDateAsDate()}")
+            } else {
+                android.util.Log.w("ViewModels", "No streak found for user")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ViewModels", "Error debugging streak: ${e.message}", e)
+        }
+    }
+
+    // Force streak refresh
+    fun forceStreakRefresh() = viewModelScope.launch {
+        val currentUserId = getCurrentUserId() ?: return@launch
+
+        try {
+            // Re-initialize if needed
+            initializeUserStreak()
+
+            // Debug current state
+            debugStreakStatus()
+
+        } catch (e: Exception) {
+            android.util.Log.e("ViewModels", "Error forcing streak refresh: ${e.message}", e)
+        }
     }
 
 }

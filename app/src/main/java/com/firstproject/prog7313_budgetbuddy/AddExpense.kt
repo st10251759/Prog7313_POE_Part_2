@@ -537,26 +537,35 @@ class AddExpenseActivity : BaseActivity() {
             return
         }
 
-        // Log key information before proceeding with saving
+        // **FIX**: Disable save button to prevent double submission
+        btnSaveExpense.isEnabled = false
+        btnSaveExpense.text = "Saving..."
+
         Log.i(TAG, "Creating new expense with amount: $amount, description: $description, category: $selectedCategoryName")
 
-        // **KEY CHANGE**: Now calling the Firestore-based createExpense method
-        // This method will automatically handle streak updates and gamification
-        viewModel.createExpense(
-            categoryId = selectedCategoryId,  // Now String instead of Int
+        // **CRITICAL FIX**: Always create the expense first, then handle photo upload separately
+        // This ensures gamification updates happen regardless of photo upload success/failure
+        viewModel.createExpenseWithSeparatePhotoUpload(
+            categoryId = selectedCategoryId,
             categoryName = selectedCategoryName,
-            expenseDate = selectedDate.time,  // Date will be converted to Timestamp in ViewModel
+            expenseDate = selectedDate.time,
             startTime = null,
             endTime = null,
             description = description,
             amount = amount,
-            photoPath = photoFilePath
+            photoPath = photoFilePath,
+            onSuccess = {
+                Log.d(TAG, "Expense saved successfully with gamification integration!")
+                Toast.makeText(this, "Expense saved successfully! Check your streak!", Toast.LENGTH_SHORT).show()
+                finish()
+            },
+            onError = { error ->
+                Log.e(TAG, "Error saving expense: $error")
+                Toast.makeText(this, "Error saving expense: $error", Toast.LENGTH_SHORT).show()
+                // Re-enable button on error
+                btnSaveExpense.isEnabled = true
+                btnSaveExpense.text = "Save Expense"
+            }
         )
-
-        Log.d(TAG, "Expense saved successfully with gamification integration!")
-
-        // Notify the user and close the screen
-        Toast.makeText(this, "Expense saved successfully! Check your streak!", Toast.LENGTH_SHORT).show()
-        finish()
     }
 }
