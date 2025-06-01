@@ -1,5 +1,17 @@
 package com.firstproject.prog7313_budgetbuddy.adapters
 
+/*
+ --------------------------------Project Details----------------------------------
+ STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
+ STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
+ COURSE: BCAD Year 3
+ MODULE: Programming 3C
+ MODULE CODE: PROG7313
+ ASSESSMENT: Portfolio of Evidence (POE) Part 3
+ Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
+ --------------------------------Project Details----------------------------------
+*/
+
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater

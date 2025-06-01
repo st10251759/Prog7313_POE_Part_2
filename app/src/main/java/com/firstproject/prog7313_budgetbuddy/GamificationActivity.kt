@@ -1,5 +1,28 @@
 package com.firstproject.prog7313_budgetbuddy
 
+/*
+ --------------------------------Project Details----------------------------------
+ STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
+ STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
+ COURSE: BCAD Year 3
+ MODULE: Programming 3C
+ MODULE CODE: PROG7313
+ ASSESSMENT: Portfolio of Evidence (POE) Part 3
+ Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
+ --------------------------------Project Details----------------------------------
+*/
+
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: Enum classes
+ Author: Kotlin
+ Date Published: 25 September 2024
+ Date Accessed: 20 May 2025
+ Code Version: v2.1.21
+ Availability: https://kotlinlang.org/docs/enum-classes.html#
+  --------------------------------Code Attribution----------------------------------
+*/
+
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -24,64 +47,83 @@ import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
+/**
+ * GamificationActivity displays the user's streak information, badges earned, and progress
+ * towards achievements. This activity motivates users to consistently log expenses by
+ * gamifying the budget tracking experience with points, streaks, and rewards.
+ */
 class GamificationActivity : BaseActivity() {
 
-    private lateinit var viewModel: ViewModels
-    private lateinit var auth: FirebaseAuth
-    private lateinit var badgeAdapter: BadgeAdapter
+    // Core components for data management and user authentication
+    private lateinit var viewModel: ViewModels  // Manages gamification data and business logic
+    private lateinit var auth: FirebaseAuth     // Handles user authentication state
+    private lateinit var badgeAdapter: BadgeAdapter  // Manages badge display in RecyclerView
 
-    // UI Components
-    private lateinit var btnBack: ImageButton
-    private lateinit var btnThemeToggle: ImageButton
-    private lateinit var tvCurrentStreak: TextView
-    private lateinit var tvLongestStreak: TextView
-    private lateinit var tvTotalPoints: TextView
-    private lateinit var tvStreakMessage: TextView
-    private lateinit var progressBarNextBadge: ProgressBar
-    private lateinit var tvNextBadgeName: TextView
-    private lateinit var tvNextBadgeProgress: TextView
-    private lateinit var rvBadges: RecyclerView
-    private lateinit var tvLoggedToday: TextView
-    private lateinit var viewStreakIndicator: View
+    // Main UI components for displaying streak and navigation
+    private lateinit var btnBack: ImageButton           // Navigate back to previous screen
+    private lateinit var btnThemeToggle: ImageButton    // Toggle between light/dark themes
+    private lateinit var tvCurrentStreak: TextView      // Display current consecutive days streak
+    private lateinit var tvLongestStreak: TextView      // Display user's all-time longest streak
+    private lateinit var tvTotalPoints: TextView        // Show total gamification points earned
+    private lateinit var tvStreakMessage: TextView      // Motivational message based on streak level
+    private lateinit var progressBarNextBadge: ProgressBar  // Visual progress towards next badge
+    private lateinit var tvNextBadgeName: TextView      // Name of the next badge to earn
+    private lateinit var tvNextBadgeProgress: TextView  // Text showing progress (e.g., "5/7 days")
+    private lateinit var rvBadges: RecyclerView         // Grid displaying all available badges
+    private lateinit var tvLoggedToday: TextView        // Status of today's expense logging
+    private lateinit var viewStreakIndicator: View      // Color indicator for today's logging status
 
-    // **ENHANCED**: Additional UI components
-    private lateinit var tvStreakLevel: TextView
-    private lateinit var tvTotalExpenses: TextView
-    private lateinit var tvCategoriesUsed: TextView
-    private lateinit var tvEarlyBirdCount: TextView
-    private lateinit var tvWeekendCount: TextView
-    private lateinit var progressBarOverall: ProgressBar
+    // **ENHANCED**: Additional UI components for detailed statistics display
+    private lateinit var tvStreakLevel: TextView        // Show streak level (Newcomer, Champion, etc.)
+    private lateinit var tvTotalExpenses: TextView      // Display total number of expenses logged
+    private lateinit var tvCategoriesUsed: TextView     // Show number of different categories used
+    private lateinit var tvEarlyBirdCount: TextView     // Count of morning expense logs
+    private lateinit var tvWeekendCount: TextView       // Count of weekend expense logs
+    private lateinit var progressBarOverall: ProgressBar  // Overall progress towards all achievements
 
     companion object {
-        private const val TAG = "GamificationActivity"
+        private const val TAG = "GamificationActivity"  // Log tag for debugging purposes
     }
 
+    /**
+     * Called when the activity is first created. Initializes all UI components,
+     * sets up observers for data changes, and loads initial gamification data.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Enable full-screen immersive experience
         enableEdgeToEdge()
         setContentView(R.layout.activity_gamification)
 
+        // Handle system bar insets for edge-to-edge display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // Initialize Firebase Auth
+        // Initialize Firebase authentication instance
         auth = FirebaseAuth.getInstance()
 
-        // Initialize ViewModel
+        // Initialize ViewModel for data management
         viewModel = ViewModelProvider(this)[ViewModels::class.java]
 
-        // Initialize UI
+        // Set up all UI components and their references
         initializeUI()
+
+        // Attach click listeners to interactive elements
         setupListeners()
 
-        // **FIXED**: Ensure user streak is initialized before loading
+        // Ensure proper initialization sequence - user streak must be initialized before loading UI
         initializeUserData()
     }
 
+    /**
+     * Initializes all UI components by finding their references and setting up
+     * the RecyclerView with appropriate layout manager and adapter.
+     */
     private fun initializeUI() {
+        // Find and assign all basic UI component references
         btnBack = findViewById(R.id.btnBack)
         btnThemeToggle = findViewById(R.id.btnThemeToggle)
         tvCurrentStreak = findViewById(R.id.tvCurrentStreak)
@@ -95,7 +137,7 @@ class GamificationActivity : BaseActivity() {
         tvLoggedToday = findViewById(R.id.tvLoggedToday)
         viewStreakIndicator = findViewById(R.id.viewStreakIndicator)
 
-        // **ENHANCED**: Initialize additional UI components
+        // Initialize additional enhanced UI components for detailed statistics
         tvStreakLevel = findViewById(R.id.tvStreakLevel)
         tvTotalExpenses = findViewById(R.id.tvTotalExpenses)
         tvCategoriesUsed = findViewById(R.id.tvCategoriesUsed)
@@ -103,79 +145,103 @@ class GamificationActivity : BaseActivity() {
         tvWeekendCount = findViewById(R.id.tvWeekendCount)
         progressBarOverall = findViewById(R.id.progressBarOverall)
 
-        // Setup RecyclerView
+        // Configure RecyclerView for badge display in a 3-column grid layout
         badgeAdapter = BadgeAdapter(emptyList(), emptyList())
         rvBadges.layoutManager = GridLayoutManager(this, 3)
         rvBadges.adapter = badgeAdapter
 
-        // Setup theme toggle if BaseActivity provides it
+        // Setup theme toggle functionality if available from BaseActivity
         try {
             setupThemeToggle(btnThemeToggle)
         } catch (e: Exception) {
+            // If theme toggle is not available, hide the button and log warning
             Log.w(TAG, "Theme toggle not available: ${e.message}")
             btnThemeToggle.visibility = View.GONE
         }
     }
 
+    /**
+     * Sets up click listeners for interactive UI elements including navigation,
+     * detailed information display, and user engagement features.
+     */
     private fun setupListeners() {
+        // Handle back navigation
         btnBack.setOnClickListener {
             finish()
         }
 
-        // **ENHANCED**: Detailed streak info on long press
+        // **ENHANCED**: Show detailed streak information on long press for power users
         tvCurrentStreak.setOnLongClickListener {
             showDetailedStreakInfo()
             true
         }
 
-        // **NEW**: Points breakdown on click
+        // **NEW**: Display points breakdown when user taps on total points
         tvTotalPoints.setOnClickListener {
             showPointsBreakdown()
         }
     }
 
-    // **FIXED**: Proper initialization sequence
+    /**
+     * Proper initialization sequence to ensure data integrity.
+     * This method ensures user streak data is initialized before setting up observers
+     * and loading dependent data to prevent null pointer exceptions.
+     */
     private fun initializeUserData() {
         Log.d(TAG, "=== INITIALIZING USER DATA ===")
 
-        // **STEP 1**: Ensure user streak is initialized
+        //  Initialize user streak data in the database if it doesn't exist
         viewModel.initializeUserStreak()
 
-        // **STEP 2**: Set up observers with proper error handling
+        //  Set up observers to react to data changes with proper error handling
         setupStreakObserver()
 
-        // **STEP 3**: Load additional data
+        //  Load additional statistical data after core data is ready
         loadDetailedStats()
     }
 
+    /**
+     * Sets up the main observer for user streak data changes. This observer handles
+     * updating the UI whenever streak data is modified and includes comprehensive
+     * error handling for robust operation.
+     */
     private fun setupStreakObserver() {
         viewModel.getUserStreak().observe(this) { userStreak ->
             try {
                 if (userStreak != null) {
+                    // Log successful data loading for debugging
                     Log.d(TAG, "✅ User streak loaded: ${userStreak.currentStreak} days, ${userStreak.totalExpensesLogged} expenses")
+
+                    // Update all UI components with new streak data
                     updateStreakDisplay(userStreak)
                     updateBadgeDisplay(userStreak)
                     checkTodayStatus(userStreak)
 
-                    // **NEW**: Force UI refresh after data update
+                    // **NEW**: Force UI refresh to ensure all components are updated
                     refreshUIComponents()
                 } else {
+                    // Handle case where no streak data exists (new user)
                     Log.d(TAG, "⚠️ User streak is null, showing defaults")
                     showDefaultState()
                 }
             } catch (e: Exception) {
+                // Comprehensive error handling to prevent crashes
                 Log.e(TAG, "Error in streak observer: ${e.message}", e)
                 showDefaultState()
             }
         }
     }
 
+    /**
+     * Forces a refresh of UI components, particularly the RecyclerView,
+     * to ensure data changes are properly reflected in the display.
+     */
     private fun refreshUIComponents() {
         try {
-            // Force RecyclerView to refresh
+            // Notify RecyclerView adapter that data has changed
             rvBadges.adapter?.notifyDataSetChanged()
 
-            // Trigger layout refresh
+            // Force layout refresh to handle any size or position changes
             rvBadges.invalidate()
 
             Log.d(TAG, "UI components refreshed")
@@ -184,10 +250,13 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
-    // **NEW**: Show default state when no streak data
-    // **FIXED**: Show proper default state for new users
+    /**
+     * Shows proper default state for new users who haven't started logging expenses yet.
+     * This method ensures new users see encouraging messages and clear next steps rather than
+     * empty or confusing UI elements.
+     */
     private fun showDefaultState() {
-        // Basic stats
+        // Set basic statistics to zero for new users
         tvCurrentStreak.text = "0"
         tvLongestStreak.text = "0"
         tvTotalPoints.text = "0 pts"
@@ -195,23 +264,24 @@ class GamificationActivity : BaseActivity() {
         tvStreakMessage.text = "Start logging expenses to build your streak! 🚀"
         tvLoggedToday.text = "No expenses logged yet"
 
-        // **FIXED**: Detailed stats for new users
+        // Show detailed statistics as zero for new users with encouraging icons
         tvTotalExpenses.text = "📝 0 expenses logged"
         tvCategoriesUsed.text = "🏷️ 0 categories explored"
         tvEarlyBirdCount.text = "🌅 0 early bird logs"
         tvWeekendCount.text = "🎉 0 weekend entries"
 
-        // **FIX**: Set progress bar to 0 for new users
+        // Set progress bar to 0 to clearly show starting point
         progressBarOverall.progress = 0
 
-        // **FIXED**: Show first badge as next target with 0 progress
+        // Show first badge as next target with 0 progress to guide user action
         val allBadges = viewModel.getAllBadges()
         val firstBadge = allBadges.find { it.id == "first_log" } ?: allBadges.firstOrNull()
 
         if (firstBadge != null) {
             tvNextBadgeName.text = "Next: ${firstBadge.name}"
-            progressBarNextBadge.progress = 0  // **CRITICAL**: Show 0 progress
+            progressBarNextBadge.progress = 0  // **CRITICAL**: Show 0 progress for clarity
 
+            // Determine the requirement value based on badge type
             val requirement = if (firstBadge.badgeType == BadgeType.STREAK) {
                 firstBadge.requiredStreak
             } else {
@@ -221,16 +291,16 @@ class GamificationActivity : BaseActivity() {
             val unit = getBadgeTypeUnit(firstBadge.badgeType)
             tvNextBadgeProgress.text = "0/$requirement $unit"
         } else {
-            // Fallback if no badges found
+            // Fallback display if no badges are configured in the system
             tvNextBadgeName.text = "Start your journey!"
             progressBarNextBadge.progress = 0
             tvNextBadgeProgress.text = "Log your first expense"
         }
 
-        // Load all badges as unearned
+        // Display all available badges as unearned to show what's possible
         badgeAdapter.updateBadges(allBadges, emptyList())
 
-        // **FIX**: Set proper today status for new users
+        // Set encouraging today status for new users
         tvLoggedToday.text = "Ready to log your first expense?"
         tvLoggedToday.setTextColor(ContextCompat.getColor(this, R.color.asparagus))
         viewStreakIndicator.setBackgroundColor(ContextCompat.getColor(this, R.color.asparagus))
@@ -238,33 +308,45 @@ class GamificationActivity : BaseActivity() {
         Log.d(TAG, "Showing default state for new user")
     }
 
+    /**
+     * Loads additional detailed statistics and next badge information by setting up
+     * observers for these data sources. This method handles the secondary data that
+     * enhances the gamification experience.
+     */
     private fun loadDetailedStats() {
+        // Observe detailed statistics for comprehensive user activity overview
         viewModel.getDetailedStats().observe(this) { stats ->
             updateDetailedStatsDisplay(stats)
         }
 
+        // Observe next available badges to show progression opportunities
         viewModel.getNextBadges().observe(this) { nextBadges ->
             updateNextBadgeInfo(nextBadges)
         }
     }
 
+    /**
+     * Updates the main streak display elements with current user data including
+     * streak counts, points, level, and motivational messaging. Includes visual
+     * enhancements like animations for achievement celebration.
+     */
     private fun updateStreakDisplay(userStreak: UserStreak) {
         try {
             Log.d(TAG, "Updating streak display with: streak=${userStreak.currentStreak}, points=${userStreak.points}")
 
-            // **FIXED**: Safe string conversion and validation
+            // Safe string conversion and validation to prevent display errors
             tvCurrentStreak.text = userStreak.currentStreak.toString()
             tvLongestStreak.text = userStreak.longestStreak.toString()
             tvTotalPoints.text = "${userStreak.points} pts"
 
-            // **ENHANCED**: Dynamic streak level display
+            //  Show dynamic streak level based on current achievement
             val streakLevel = userStreak.getStreakLevel()
             tvStreakLevel.text = streakLevel
 
-            // **IMPROVED**: More encouraging messages
+            // Display contextual and encouraging messages based on progress
             tvStreakMessage.text = getStreakMessage(userStreak.currentStreak)
 
-            // **ENHANCED**: Animated streak number
+            // Add visual celebration through number animation
             animateStreakNumber(userStreak.currentStreak)
 
             Log.d(TAG, "Streak display updated successfully")
@@ -273,8 +355,10 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
-
-    // **FIXED**: Accurate streak messages
+    /**
+     * Returns accurate and motivational streak messages based on current progress.
+     * Messages are designed to encourage continued engagement and celebrate milestones.
+     */
     private fun getStreakMessage(currentStreak: Int): String {
         return when (currentStreak) {
             0 -> "Ready to start your journey? Log your first expense! 🚀"
@@ -302,22 +386,28 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
-    // **NEW**: Animate streak number based on achievement level
+    /**
+     * Animates the streak number display with scaling effects based on achievement level.
+     * Higher streaks get more dramatic animations to celebrate the user's commitment.
+     */
     private fun animateStreakNumber(streak: Int) {
+        // Determine animation scale based on streak achievement level
         val scale = when {
-            streak >= 60 -> 1.3f
-            streak >= 30 -> 1.25f
-            streak >= 14 -> 1.2f
-            streak >= 7 -> 1.15f
-            else -> 1.1f
+            streak >= 60 -> 1.3f    // Legendary streaks get maximum celebration
+            streak >= 30 -> 1.25f   // Monthly masters get strong recognition
+            streak >= 14 -> 1.2f    // Fortnight champions get good recognition
+            streak >= 7 -> 1.15f    // Week warriors get moderate recognition
+            else -> 1.1f            // Early streaks get gentle encouragement
         }
 
+        // Only animate if user has any streak to celebrate
         if (streak > 0) {
             tvCurrentStreak.animate()
                 .scaleX(scale)
                 .scaleY(scale)
                 .setDuration(300)
                 .withEndAction {
+                    // Return to normal size after celebration
                     tvCurrentStreak.animate()
                         .scaleX(1f)
                         .scaleY(1f)
@@ -328,20 +418,28 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
-    // **ENHANCED**: Comprehensive detailed stats display
+    /**
+     * Updates the detailed statistics display with comprehensive user activity data.
+     * This provides users with deeper insights into their expense logging patterns and habits.
+     */
     private fun updateDetailedStatsDisplay(stats: GamificationStats) {
+        // Display various statistics with emoji icons for visual appeal
         tvTotalExpenses.text = "📝 ${stats.totalExpenses} expenses logged"
         tvCategoriesUsed.text = "🏷️ ${stats.categoriesUsed} categories explored"
         tvEarlyBirdCount.text = "🌅 ${stats.earlyBirdCount} early bird logs"
         tvWeekendCount.text = "🎉 ${stats.weekendCount} weekend entries"
 
-        // **FIXED**: More accurate progress calculation
+        //  Calculate and display accurate progress percentage with bounds checking
         val progress = (stats.progressToNext * 100).toInt().coerceIn(0, 100)
         progressBarOverall.progress = progress
 
         Log.d(TAG, "Updated stats: expenses=${stats.totalExpenses}, categories=${stats.categoriesUsed}, progress=$progress%")
     }
 
+    /**
+     * Updates the badge display by showing all available badges and highlighting earned ones.
+     * Also calculates and displays progress towards the next achievable badge.
+     */
     private fun updateBadgeDisplay(userStreak: UserStreak) {
         try {
             val allBadges = viewModel.getAllBadges()
@@ -350,10 +448,10 @@ class GamificationActivity : BaseActivity() {
             Log.d(TAG, "Updating badge display: ${earnedBadges.size}/${allBadges.size} badges earned")
             Log.d(TAG, "Earned badges: $earnedBadges")
 
-            // Update badge grid
+            // Update the badge grid with current earn status
             badgeAdapter.updateBadges(allBadges, earnedBadges)
 
-            // **ENHANCED**: Show progress for the closest badge
+            //  Calculate and show progress for the closest achievable badge
             updateNextBadgeProgress(userStreak, allBadges, earnedBadges)
 
             Log.d(TAG, "Badge display updated successfully")
@@ -362,14 +460,16 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
-
-    // **FIXED**: More accurate next badge progress calculation
+    /**
+     * Calculates more accurate next badge progress by finding the badge with the
+     * lowest requirement that hasn't been earned yet, rather than showing the highest progress.
+     */
     private fun updateNextBadgeProgress(userStreak: UserStreak, allBadges: List<Badge>, earnedBadges: List<String>) {
-        // **FIX**: Find the NEXT badge to work towards, not the highest progress
+        //  Find the NEXT badge to work towards (lowest requirement among unearned badges)
         var nextBadge: Badge? = null
         var lowestRequirement = Int.MAX_VALUE
 
-        // **CORRECTED**: Look for the badge with lowest requirement that's not yet earned
+        // Search for the most achievable badge that hasn't been earned
         for (badge in allBadges) {
             if (!earnedBadges.contains(badge.id)) {
                 val requirement = if (badge.badgeType == BadgeType.STREAK) {
@@ -378,7 +478,7 @@ class GamificationActivity : BaseActivity() {
                     badge.requiredValue
                 }
 
-                // **FIX**: Find the badge with the lowest requirement (closest to achieve)
+                //  Prioritize the badge with lowest requirement (most achievable)
                 if (requirement < lowestRequirement) {
                     lowestRequirement = requirement
                     nextBadge = badge
@@ -387,43 +487,49 @@ class GamificationActivity : BaseActivity() {
         }
 
         if (nextBadge != null) {
-            // **FIXED**: Calculate actual progress towards the next badge
+            //  Calculate actual progress towards the specific next badge
             val progress = calculateBadgeProgress(userStreak, nextBadge)
             displayNextBadgeInfo(nextBadge, userStreak, progress)
 
             Log.d(TAG, "Next badge: ${nextBadge.name}, actual progress: ${(progress * 100).toInt()}%")
         } else {
-            // Only show "all badges earned" if user actually has badges
+            // Handle case where all badges are earned or no badges exist
             if (earnedBadges.isNotEmpty()) {
                 displayAllBadgesEarned()
             } else {
-                // **NEW**: Show proper state for new users
+                // Show appropriate guidance for completely new users
                 displayFirstBadgePrompt()
             }
         }
     }
 
-    // **NEW**: Show appropriate message for new users with no progress
+    /**
+     *  Shows appropriate guidance for new users who haven't made any progress yet.
+     * This helps orient users and gives them a clear first goal to work towards.
+     */
     private fun displayFirstBadgePrompt() {
         val firstBadge = viewModel.getAllBadges().find { it.id == "first_log" }
 
         if (firstBadge != null) {
             tvNextBadgeName.text = "Next: ${firstBadge.name}"
-            progressBarNextBadge.progress = 0  // **FIX**: Show 0 progress for new users
+            progressBarNextBadge.progress = 0  // **FIX**: Show 0 progress for clarity
             tvNextBadgeProgress.text = "0/${firstBadge.requiredStreak} ${getBadgeTypeUnit(firstBadge.badgeType)}"
 
             Log.d(TAG, "Showing first badge prompt for new user")
         } else {
-            // Fallback if first badge not found
+            // Fallback if the expected first badge doesn't exist in the system
             tvNextBadgeName.text = "Start logging expenses!"
             progressBarNextBadge.progress = 0
             tvNextBadgeProgress.text = "0/1 expenses"
         }
     }
 
-
-    // **NEW**: Calculate accurate progress for any badge type
+    /**
+     * Calculates accurate progress percentage for any badge type by comparing
+     * current user achievements against the specific badge requirements.
+     */
     private fun calculateBadgeProgress(userStreak: UserStreak, badge: Badge): Float {
+        // Get current user value for the specific badge type
         val currentValue = when (badge.badgeType) {
             BadgeType.STREAK -> userStreak.currentStreak
             BadgeType.EXPENSE_COUNT -> userStreak.totalExpensesLogged
@@ -433,13 +539,14 @@ class GamificationActivity : BaseActivity() {
             BadgeType.BUDGET_KEEPER -> userStreak.budgetKeeperDays
         }
 
+        // Get required value based on badge type structure
         val requiredValue = if (badge.badgeType == BadgeType.STREAK) {
             badge.requiredStreak
         } else {
             badge.requiredValue
         }
 
-        // **FIX**: Ensure we don't divide by zero and handle edge cases
+        //  Ensure safe division and proper bounds (0-100% progress)
         return if (requiredValue > 0) {
             (currentValue.toFloat() / requiredValue).coerceIn(0f, 1f)
         } else {
@@ -447,14 +554,18 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
-
+    /**
+     * Displays information about the next badge to earn, including name, progress bar,
+     * and detailed progress text showing current vs required values.
+     */
     private fun displayNextBadgeInfo(badge: Badge, userStreak: UserStreak, progress: Float) {
         tvNextBadgeName.text = "Next: ${badge.name}"
 
-        // **FIX**: Ensure progress is never negative and shows 0 for new users
+        // Ensure progress is never negative and properly bounded for new users
         val progressPercentage = (progress * 100).toInt().coerceIn(0, 100)
         progressBarNextBadge.progress = progressPercentage
 
+        // Get current achievement value for this badge type
         val currentValue = when (badge.badgeType) {
             BadgeType.STREAK -> userStreak.currentStreak
             BadgeType.EXPENSE_COUNT -> userStreak.totalExpensesLogged
@@ -464,18 +575,24 @@ class GamificationActivity : BaseActivity() {
             BadgeType.BUDGET_KEEPER -> userStreak.budgetKeeperDays
         }
 
+        // Get target value for comparison
         val requiredValue = if (badge.badgeType == BadgeType.STREAK) {
             badge.requiredStreak
         } else {
             badge.requiredValue
         }
 
+        // Create descriptive progress text with appropriate units
         val unit = getBadgeTypeUnit(badge.badgeType)
         tvNextBadgeProgress.text = "$currentValue/$requiredValue $unit"
 
         Log.d(TAG, "Displaying badge: ${badge.name}, current: $currentValue, required: $requiredValue, progress: $progressPercentage%")
     }
 
+    /**
+     * Displays celebration message when user has earned all available badges.
+     * This provides recognition for complete achievement and encourages continued engagement.
+     */
     private fun displayAllBadgesEarned() {
         tvNextBadgeName.text = "All badges earned! 🎉"
         progressBarNextBadge.progress = 100
@@ -484,7 +601,10 @@ class GamificationActivity : BaseActivity() {
         Log.d(TAG, "User has earned all available badges!")
     }
 
-    // **IMPROVED**: More descriptive unit names
+    /**
+     * Returns descriptive unit names for different badge types to make
+     * progress displays more user-friendly and understandable.
+     */
     private fun getBadgeTypeUnit(badgeType: BadgeType): String {
         return when (badgeType) {
             BadgeType.STREAK -> "consecutive days"
@@ -496,17 +616,25 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
+    /**
+     * Handles updates to next badge information. Currently logs available badges
+     * but could be enhanced to show multiple upcoming badges or cycle through them.
+     */
     private fun updateNextBadgeInfo(nextBadges: List<Badge>) {
-        // **NEW**: Could show multiple upcoming badges or cycle through them
+        // **NEW**: Future enhancement opportunity - could show multiple upcoming badges
         if (nextBadges.isNotEmpty()) {
             Log.d(TAG, "Next badges available: ${nextBadges.size}")
-            // Future enhancement: show multiple next badges in a carousel
+            // Future enhancement: show multiple next badges in a carousel view
         }
     }
 
-    // **FIXED**: More accurate today status using calendar days
+    /**
+     * Checks today's logging status using calendar days rather than timestamps
+     * to provide more accurate daily streak tracking that aligns with user expectations.
+     */
     private fun checkTodayStatus(userStreak: UserStreak) {
         try {
+            // Normalize last log date to start of day for accurate comparison
             val lastLogCalendar = Calendar.getInstance().apply {
                 time = userStreak.getLastLogDateAsDate()
                 set(Calendar.HOUR_OF_DAY, 0)
@@ -515,6 +643,7 @@ class GamificationActivity : BaseActivity() {
                 set(Calendar.MILLISECOND, 0)
             }
 
+            // Normalize today's date to start of day
             val todayCalendar = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
@@ -522,6 +651,7 @@ class GamificationActivity : BaseActivity() {
                 set(Calendar.MILLISECOND, 0)
             }
 
+            // Calculate difference in whole days
             val daysDifference = TimeUnit.MILLISECONDS.toDays(
                 todayCalendar.timeInMillis - lastLogCalendar.timeInMillis
             )
@@ -535,9 +665,15 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
+    /**
+     * Updates the today status display with appropriate message and color coding
+     * based on how many days have passed since the last expense log.
+     */
     private fun updateTodayStatusDisplay(daysDifference: Long) {
+        // Determine message, text color, and indicator color based on streak status
         val (message, colorRes, indicatorColorRes) = when {
             daysDifference == 0L -> {
+                // User has logged today - streak is safe
                 Triple(
                     "✅ Expense logged today - streak safe!",
                     R.color.olivine,
@@ -545,6 +681,7 @@ class GamificationActivity : BaseActivity() {
                 )
             }
             daysDifference == 1L -> {
+                // User missed today but can still continue streak
                 Triple(
                     "⚠️ Log an expense today to continue your streak!",
                     R.color.gold,
@@ -552,6 +689,7 @@ class GamificationActivity : BaseActivity() {
                 )
             }
             else -> {
+                // Streak is broken - encourage fresh start
                 Triple(
                     "❌ Streak broken - log an expense to start fresh!",
                     R.color.coral_pink,
@@ -560,94 +698,118 @@ class GamificationActivity : BaseActivity() {
             }
         }
 
+        // Apply the determined styling to UI components
         tvLoggedToday.text = message
         tvLoggedToday.setTextColor(ContextCompat.getColor(this, colorRes))
         viewStreakIndicator.setBackgroundColor(ContextCompat.getColor(this, indicatorColorRes))
     }
 
+    /**
+     * Shows default today status for new users or when status cannot be determined.
+     * Uses encouraging messaging and positive colors to motivate action.
+     */
     private fun showDefaultTodayStatus() {
         tvLoggedToday.text = "Ready to log your first expense?"
         tvLoggedToday.setTextColor(ContextCompat.getColor(this, R.color.asparagus))
         viewStreakIndicator.setBackgroundColor(ContextCompat.getColor(this, R.color.asparagus))
     }
 
-    // **NEW**: Show detailed streak information
+    /**
+     * Displays comprehensive streak and activity statistics in a detailed format.
+     * This power-user feature provides deep insights into their gamification progress.
+     */
     private fun showDetailedStreakInfo() {
         viewModel.getUserStreak().value?.let { userStreak ->
+            // Format comprehensive statistics message
             val message = """
-                🔥 STREAK DETAILS
-                
-                Current Streak: ${userStreak.currentStreak} days
-                Longest Streak: ${userStreak.longestStreak} days
-                Level: ${userStreak.getStreakLevel()}
-                Total Days Logged: ${userStreak.totalDaysLogged}
-                
-                📊 ACTIVITY STATS
-                Total Expenses: ${userStreak.totalExpensesLogged}
-                Categories Used: ${userStreak.categoriesUsed.size}
-                Early Bird Logs: ${userStreak.earlyBirdCount}
-                Weekend Logs: ${userStreak.weekendLogCount}
-                Budget Keeper Days: ${userStreak.budgetKeeperDays}
-                
-                🏆 ACHIEVEMENT PROGRESS
-                Points Earned: ${userStreak.points}
-                Badges Earned: ${userStreak.badges.size}
-                
-                Next Milestone: ${userStreak.getNextStreakMilestone()} days
-                Progress: ${(userStreak.getProgressToNextMilestone() * 100).toInt()}%
-            """.trimIndent()
+               🔥 STREAK DETAILS
+               
+               Current Streak: ${userStreak.currentStreak} days
+               Longest Streak: ${userStreak.longestStreak} days
+               Level: ${userStreak.getStreakLevel()}
+               Total Days Logged: ${userStreak.totalDaysLogged}
+               
+               📊 ACTIVITY STATS
+               Total Expenses: ${userStreak.totalExpensesLogged}
+               Categories Used: ${userStreak.categoriesUsed.size}
+               Early Bird Logs: ${userStreak.earlyBirdCount}
+               Weekend Logs: ${userStreak.weekendLogCount}
+               Budget Keeper Days: ${userStreak.budgetKeeperDays}
+               
+               🏆 ACHIEVEMENT PROGRESS
+               Points Earned: ${userStreak.points}
+               Badges Earned: ${userStreak.badges.size}
+               
+               Next Milestone: ${userStreak.getNextStreakMilestone()} days
+               Progress: ${(userStreak.getProgressToNextMilestone() * 100).toInt()}%
+           """.trimIndent()
 
+            // Display the detailed information in a long-duration toast
             Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         } ?: run {
+            // Handle case where no streak data is available yet
             Toast.makeText(this, "No streak data available yet. Start logging expenses!", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // **NEW**: Show points breakdown
+    /**
+     * Shows breakdown of points earned and badge progress when user taps total points.
+     * Provides transparency about how points are calculated and motivates further engagement.
+     */
     private fun showPointsBreakdown() {
+        // Get current points and badge statistics from the adapter
         val earnedPoints = badgeAdapter.getEarnedPoints()
         val totalPossiblePoints = badgeAdapter.getTotalPossiblePoints()
         val earnedBadges = badgeAdapter.getTotalEarnedBadges()
         val totalBadges = viewModel.getAllBadges().size
 
+        // Format comprehensive points breakdown message
         val message = """
-            💎 POINTS BREAKDOWN
-            
-            Points Earned: $earnedPoints
-            Total Possible: $totalPossiblePoints
-            Completion: ${if (totalPossiblePoints > 0) (earnedPoints * 100 / totalPossiblePoints) else 0}%
-            
-            🏆 BADGES PROGRESS
-            Badges Earned: $earnedBadges
-            Total Badges: $totalBadges
-            Badge Completion: ${if (totalBadges > 0) (earnedBadges * 100 / totalBadges) else 0}%
-            
-            Keep logging expenses to earn more points and badges!
-        """.trimIndent()
+           💎 POINTS BREAKDOWN
+           
+           Points Earned: $earnedPoints
+           Total Possible: $totalPossiblePoints
+           Completion: ${if (totalPossiblePoints > 0) (earnedPoints * 100 / totalPossiblePoints) else 0}%
+           
+           🏆 BADGES PROGRESS
+           Badges Earned: $earnedBadges
+           Total Badges: $totalBadges
+           Badge Completion: ${if (totalBadges > 0) (earnedBadges * 100 / totalBadges) else 0}%
+           
+           Keep logging expenses to earn more points and badges!
+       """.trimIndent()
 
+        // Display the points breakdown information
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
-    // **ENHANCED**: Better onResume with data refresh
+    /**
+     * Called when activity becomes visible again. Forces refresh of all
+     * gamification data to ensure UI reflects any changes made in other parts of the app.
+     */
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "=== ACTIVITY RESUMED ===")
 
-        // **ENHANCED**: Force refresh all data when returning to screen
+        // **ENHANCED**: Comprehensive data refresh when returning to screen
         refreshAllData()
     }
 
+    /**
+     * Comprehensive refresh method that reloads all gamification data and updates UI.
+     * This ensures the activity shows the most current information when user returns to it.
+     */
     private fun refreshAllData() {
         try {
             Log.d(TAG, "Refreshing all gamification data")
 
-            // Re-initialize user data
+            // Reinitialize user data to pick up any changes
             initializeUserData()
 
-            // Check for immediate badge opportunities
+            // Check for any new badges that might have been earned
             viewModel.checkForImmediateBadges()
 
-            // Force UI refresh after a short delay to ensure data is loaded
+            // Force UI refresh after data loading with slight delay to ensure completion
             rvBadges.postDelayed({
                 refreshUIComponents()
             }, 500)
@@ -658,12 +820,17 @@ class GamificationActivity : BaseActivity() {
         }
     }
 
-
+    /**
+     * Called when activity is no longer visible. Logs state change for debugging purposes.
+     */
     override fun onPause() {
         super.onPause()
         Log.d(TAG, "Activity paused")
     }
 
+    /**
+     * Called when activity is being destroyed. Logs state change for debugging and cleanup tracking.
+     */
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "Activity destroyed")

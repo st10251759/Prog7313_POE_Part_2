@@ -1,5 +1,29 @@
 package com.firstproject.prog7313_budgetbuddy
 
+/*
+ --------------------------------Project Details----------------------------------
+ STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
+ STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
+ COURSE: BCAD Year 3
+ MODULE: Programming 3C
+ MODULE CODE: PROG7313
+ ASSESSMENT: Portfolio of Evidence (POE) Part 3
+ Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
+ --------------------------------Project Details----------------------------------
+*/
+
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: How to Integrate Firebase Firestore with Kotlin and Use it in Android Apps
+ Author: Finotes
+ Date Published: 27 June 2023
+ Date Accessed: 20 May 2025
+ Code Version: N/A
+ Availability: https://www.blog.finotes.com/post/how-to-integrate-firebase-firestore-with-kotlin-and-use-it-in-android-apps
+
+  --------------------------------Code Attribution----------------------------------
+*/
+
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Intent
@@ -374,6 +398,7 @@ class AddExpenseActivity : BaseActivity() {
             .create()
         dialog.setCancelable(true)
 
+        //Validation for Category is not empty before saving
         btnSave.setOnClickListener {
             val name = etCategoryName.text.toString().trim()
             if (name.isEmpty()) {

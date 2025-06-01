@@ -6,7 +6,7 @@ package com.firstproject.prog7313_budgetbuddy
  COURSE: BCAD Year 3
  MODULE: Programming 3C
  MODULE CODE: PROG7313
- ASSESSMENT: Portfolio of Evidence (POE) Part 2
+ ASSESSMENT: Portfolio of Evidence (POE) Part 3
  Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
  --------------------------------Project Details----------------------------------
 */

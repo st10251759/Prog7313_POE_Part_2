@@ -1,5 +1,29 @@
 package com.firstproject.prog7313_budgetbuddy.adapters
 
+/*
+ --------------------------------Project Details----------------------------------
+ STUDENT NUMBERS: ST10251759   | ST10252746      | ST10266994
+ STUDENT NAMES: Cameron Chetty | Theshara Narain | Alyssia Sookdeo
+ COURSE: BCAD Year 3
+ MODULE: Programming 3C
+ MODULE CODE: PROG7313
+ ASSESSMENT: Portfolio of Evidence (POE) Part 3
+ Github REPO LINK: https://github.com/st10251759/Prog7313_POE_Part_2
+ --------------------------------Project Details----------------------------------
+*/
+
+/*
+ --------------------------------Code Attribution----------------------------------
+ Title: RecyclerViewKotlin
+ Author: Jeremy Walker
+ Date Published: 30 July 2019
+ Date Accessed: 30 May 2025
+ Code Version: N/A
+ Availability: https://github.com/android/views-widgets-samples/tree/main/RecyclerViewKotlin/
+
+  --------------------------------Code Attribution----------------------------------
+*/
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
