@@ -265,7 +265,7 @@ Our Dark Mode Scheduler enhances user experience by providing intelligent theme 
 **Screenshots:**
 <p align="center">
   <img src="APP_LIGHT_MODE_SCREENSHOT.png" alt="Light Mode" width="300"/>
-  <img src="APP_DARK_MODE_SCREENSHOT.png" alt="Dark Mode" width="300"/>
+  <img src="APP_NIGHT_MODE_SCREENSHOT.png" alt="Dark Mode" width="300"/>
 </p>
 
 ### 2. Smart Transaction Search & Filters
