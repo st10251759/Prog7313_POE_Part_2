@@ -9,8 +9,6 @@
     tools:context=".BudgetGoalsActivity">
 
     <!-- Header with back button and title -->
-
-    <!-- Main Content -->
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
@@ -18,9 +16,8 @@
         android:background="#F5F8F5"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="0dp">
+        android:padding="12dp"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
             android:id="@+id/btnBack"
@@ -39,340 +36,418 @@
             android:text="Budget Goals"
             android:textAlignment="center"
             android:textColor="#3CB371"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
+
         <ImageButton
             android:id="@+id/btnThemeToggle"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_moon"
             android:contentDescription="Toggle theme"
             app:tint="#3CB371" />
-        <View
-            android:layout_width="28dp"
-            android:layout_height="28dp" />
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvBudgetGoalsHeading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Set Monthly Budget Goals"
-        android:textColor="#8BC397"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/header" />
-
-    <!-- Budget Goals Card -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardBudgetGoals"
+    <!-- Scrollable content -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="24dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="2dp"
-        app:layout_constraintTop_toBottomOf="@id/tvBudgetGoalsHeading">
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintBottom_toTopOf="@id/bottomButtons">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="16dp">
 
-            <!-- Minimum Budget Section -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvBudgetGoalsHeading"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingBottom="8dp">
+                android:text="Set Monthly Budget Goals"
+                android:textColor="#8BC397"
+                android:textSize="20sp"
+                android:textAlignment="center"
+                android:layout_marginBottom="16dp" />
 
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Set Minimum Budget"
-                    android:textColor="@color/asparagus"
-                    android:textSize="16sp" />
-
-            </LinearLayout>
-
+            <!-- Budget Goals Card -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardBudgetGoals"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                app:cardCornerRadius="25dp"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
 
                 <LinearLayout
-                    android:id="@+id/minimumBudgetContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/budget_field_rounded"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="0dp">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
+                    <!-- Minimum Budget Section -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingStart="24dp"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="14dp"
-                        android:text="R"
-                        android:textColor="@android:color/black"
-                        android:textSize="18sp" />
+                        android:layout_marginStart="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="Set Minimum Budget"
+                        android:textColor="@color/asparagus"
+                        android:textSize="14sp" />
 
-                    <TextView
-                        android:id="@+id/tvMinimumBudget"
+                    <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:paddingStart="16dp"
-                        android:paddingTop="14dp"
-                        android:paddingEnd="24dp"
-                        android:paddingBottom="14dp"
-                        android:text="0.00"
-                        android:textColor="@android:color/black"
-                        android:background="?android:attr/selectableItemBackground" />
-                         />
+                        android:layout_marginBottom="20dp"
+                        app:cardCornerRadius="25dp"
+                        app:cardElevation="0dp">
+
+                        <LinearLayout
+                            android:id="@+id/minimumBudgetContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/budget_field_rounded"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="0dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingStart="20dp"
+                                android:paddingTop="12dp"
+                                android:paddingBottom="12dp"
+                                android:text="R"
+                                android:textColor="@android:color/black"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvMinimumBudget"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="12dp"
+                                android:paddingTop="12dp"
+                                android:paddingEnd="20dp"
+                                android:paddingBottom="12dp"
+                                android:text="0.00"
+                                android:textColor="@android:color/black"
+                                android:textSize="16sp"
+                                android:background="?android:attr/selectableItemBackground" />
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Maximum Budget Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="Set Maximum Budget"
+                        android:textColor="@color/asparagus"
+                        android:textSize="14sp" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="25dp"
+                        app:cardElevation="0dp">
+
+                        <LinearLayout
+                            android:id="@+id/maximumBudgetContainer"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/budget_field_rounded"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:padding="0dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingStart="20dp"
+                                android:paddingTop="12dp"
+                                android:paddingBottom="12dp"
+                                android:text="R"
+                                android:textColor="@android:color/black"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvMaximumBudget"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="12dp"
+                                android:paddingTop="12dp"
+                                android:paddingEnd="20dp"
+                                android:paddingBottom="12dp"
+                                android:text="0.00"
+                                android:textColor="@android:color/black"
+                                android:textSize="16sp"
+                                android:background="?android:attr/selectableItemBackground" />
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Maximum Budget Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingBottom="8dp">
-
-
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Set Maximum Budget"
-                    android:textColor="@color/asparagus"
-                    android:textSize="16sp" />
-
-            </LinearLayout>
-
+            <!-- Keypad Container Card -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/cardKeypad"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                app:cardCornerRadius="25dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
 
                 <LinearLayout
-                    android:id="@+id/maximumBudgetContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/budget_field_rounded"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="0dp">
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingStart="24dp"
-                        android:paddingTop="14dp"
-                        android:paddingBottom="14dp"
-                        android:text="R"
-                        android:textColor="@android:color/black"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/tvMaximumBudget"
+                    <!-- Keypad Amount Display -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:paddingStart="16dp"
-                        android:paddingTop="14dp"
-                        android:paddingEnd="24dp"
-                        android:paddingBottom="14dp"
-                        android:text="0.00"
-                        android:textColor="@android:color/black"
-                        android:background="?android:attr/selectableItemBackground" />
-                </LinearLayout>
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingBottom="12dp">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="R"
+                            android:textColor="#6B7A6B"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvKeypadAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="0.00"
+                            android:textColor="#6B7A6B"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Numeric Keypad with compact styling -->
+                    <GridLayout
+                        android:id="@+id/numericKeypad"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="3"
+                        android:rowCount="4">
+
+                        <Button
+                            android:id="@+id/btn1"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="1"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn2"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="2"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn3"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="3"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn4"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="4"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn5"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="5"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn6"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="6"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn7"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="7"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn8"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="8"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn9"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="9"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btnDot"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="."
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btn0"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="0"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                        <Button
+                            android:id="@+id/btnDelete"
+                            android:layout_width="0dp"
+                            android:layout_height="45dp"
+                            android:layout_columnWeight="1"
+                            android:layout_rowWeight="1"
+                            android:layout_margin="2dp"
+                            android:background="@drawable/keypad_button_bg"
+                            android:text="⌫"
+                            android:textColor="#202020"
+                            android:textSize="16sp"
+                            style="?android:attr/borderlessButtonStyle" />
+
+                    </GridLayout>
+                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
+    </ScrollView>
 
-    </androidx.cardview.widget.CardView>
-
-    <!-- Keypad Container Card -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardKeypad"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="24dp"
-        app:cardCornerRadius="0dp"
-        app:cardElevation="2dp"
-        app:layout_constraintTop_toBottomOf="@id/cardBudgetGoals"
-        app:layout_constraintBottom_toTopOf="@id/bottomButtons"
-        app:layout_constraintVertical_bias="0.0">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
-
-            <!-- Keypad Amount Display -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingBottom="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="R"
-                    android:textColor="#6B7A6B"
-                    android:textSize="30sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvKeypadAmount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="0.00"
-                    android:textColor="#6B7A6B"
-                    android:textSize="30sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- Numeric Keypad -->
-            <GridLayout
-                android:id="@+id/numericKeypad"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="3"
-                android:rowCount="4">
-
-                <Button
-                    android:id="@+id/btn1"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="1" />
-
-                <Button
-                    android:id="@+id/btn2"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="2" />
-
-                <Button
-                    android:id="@+id/btn3"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="3" />
-
-                <Button
-                    android:id="@+id/btn4"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="4" />
-
-                <Button
-                    android:id="@+id/btn5"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="5" />
-
-                <Button
-                    android:id="@+id/btn6"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="6" />
-
-                <Button
-                    android:id="@+id/btn7"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="7" />
-
-                <Button
-                    android:id="@+id/btn8"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="8" />
-
-                <Button
-                    android:id="@+id/btn9"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="9" />
-
-                <Button
-                    android:id="@+id/btnDot"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="." />
-
-                <Button
-                    android:id="@+id/btn0"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="0" />
-
-                <Button
-                    android:id="@+id/btnDelete"
-                    style="@style/WireframeKeypadButtonStyle"
-                    android:text="⌫" />
-
-            </GridLayout>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Bottom Buttons -->
+    <!-- Bottom Buttons - Fixed at bottom -->
     <LinearLayout
         android:id="@+id/bottomButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:padding="24dp"
-        app:layout_constraintTop_toBottomOf="@id/cardKeypad"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
             android:id="@+id/btnCancel"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="Cancel"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#B22222" />
-
-        <Space
-            android:layout_width="16dp"
-            android:layout_height="wrap_content" />
+            android:backgroundTint="#B22222"
+            android:layout_marginEnd="8dp" />
 
         <Button
             android:id="@+id/btnSaveBudget"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="Save"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#008000" />
-
+            android:backgroundTint="#008000"
+            android:layout_marginStart="8dp" />
 
     </LinearLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
