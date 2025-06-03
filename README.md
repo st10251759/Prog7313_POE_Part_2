@@ -387,42 +387,7 @@ class GamificationActivity : BaseActivity() {
    - Set up appropriate security rules for data access
    - Initialize required collections and document structures
 
----
 
-## Architecture and Design Pattern
-
-### Android Application Architecture
-
-BudgetBuddy follows a clean Android application architecture with proper separation of concerns:
-
-**Activity-Based Structure:**
-- Activities handling user interface presentation and user interactions
-- Fragment implementation for modular UI components
-- Custom UI components for specialized functionality (graphs, progress indicators)
-
-**Data Management:**
-- Data classes representing core entities (UserStreak, Badge, GamificationStats, Expense)
-- Firebase Firestore integration for cloud data persistence
-- Repository pattern for centralized data access
-
-**Business Logic:**
-- Service classes handling core application logic
-- Utility classes for common operations and calculations
-- Event-driven architecture for real-time updates
-
-### Modular Design Benefits
-
-**Clean Code Structure:**
-- Organized package structure separating activities, data models, and utilities
-- Reusable components across different activities
-- Clear naming conventions and comprehensive documentation
-
-**Maintainability:**
-- Modular codebase enabling easy feature additions
-- Independent testing of core functionality
-- Simplified debugging and troubleshooting processes
-
----
 
 ## Database Implementation
 
@@ -506,7 +471,6 @@ jobs:
 **Secure Account Management:**
 - Firebase Authentication integration providing industry-standard security
 - Email verification process ensuring account validity
-- Password reset functionality for account recovery
 - Secure session management with automatic token refresh
 
 ### Expense Management
@@ -592,12 +556,6 @@ Log.e(TAG, "Error updating streak display: ${e.message}", e)
 - Community challenges and financial goal achievement sharing
 - Expert financial advisor integration for professional guidance
 - Social comparison features for motivation and accountability
-
-### Platform Expansion
-- Web application for desktop expense management
-- Smart watch integration for quick expense logging
-- Voice-activated expense entry using natural language processing
-- Integration with popular financial management platforms
 
 ### Advanced Gamification
 - Seasonal challenges and limited-time achievements
