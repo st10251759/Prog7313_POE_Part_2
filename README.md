@@ -1,11 +1,10 @@
 <a id="readme-top"></a>
 
-<!-- BADGES -->
-
-https://github.com/st10251759/Prog7313_POE_Part_2/graphs/contributors
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
+<!-- STATIC BADGES -->
+[![Contributors](https://img.shields.io/badge/contributors-3-blue?style=for-the-badge)](https://github.com/st10251759/Prog7313_POE_Part_2/graphs/contributors)
+[![Forks](https://img.shields.io/badge/forks-0-blue?style=for-the-badge)](https://github.com/st10251759/Prog7313_POE_Part_2/network/members)
+[![Stars](https://img.shields.io/badge/stars-0-blue?style=for-the-badge)](https://github.com/st10251759/Prog7313_POE_Part_2/stargazers)
+[![Issues](https://img.shields.io/badge/issues-0-blue?style=for-the-badge)](https://github.com/st10251759/Prog7313_POE_Part_2/issues)
 
 <br />
 <p align="center">
@@ -607,13 +606,3 @@ Log.e(TAG, "Error updating streak display: ${e.message}", e)
 </p>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- MARKDOWN LINKS & IMAGES -->
-[contributors-shield]: https://img.shields.io/github/contributors/st10251759/Prog7313_POE_Part_2.svg?style=for-the-badge
-[contributors-url]: https://github.com/st10251759/Prog7313_POE_Part_2/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/st10251759/Prog7313_POE_Part_2.svg?style=for-the-badge
-[forks-url]: https://github.com/st10251759/Prog7313_POE_Part_2/network/members
-[stars-shield]: https://img.shields.io/github/stars/st10251759/Prog7313_POE_Part_2.svg?style=for-the-badge
-[stars-url]: https://github.com/st10251759/Prog7313_POE_Part_2/stargazers
-[issues-shield]: https://img.shields.io/github/issues/st10251759/Prog7313_POE_Part_2.svg?style=for-the-badge
-[issues-url]: https://github.com/st10251759/Prog7313_POE_Part_2/issues
