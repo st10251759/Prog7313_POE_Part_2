@@ -1,7 +1,8 @@
 <a id="readme-top"></a>
 
 <!-- BADGES -->
-[![Contributors][contributors-shield]][contributors-url]
+
+https://github.com/st10251759/Prog7313_POE_Part_2/graphs/contributors
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
